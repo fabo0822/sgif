@@ -2,11 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using sgif.domain.entities;
 
-namespace sgif.domain.ports
+namespace sgif.domain.ports;
+
+public interface IClienteRepository
 {
-    public interface IClienteRepository
-    {
-          public interface IClienteRepository : IGenericRepository<Cliente> { }
-    }
+    Task<Cliente?> GetByIdAsync(int id);
+    Task<IEnumerable<Cliente>> GetAllAsync();
+    Task AddAsync(Cliente cliente);
+    Task UpdateAsync(Cliente cliente);
+    Task DeleteAsync(int id);
 }

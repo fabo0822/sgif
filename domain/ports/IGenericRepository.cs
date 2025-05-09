@@ -7,7 +7,8 @@ namespace sgif.domain.ports
 {
     public interface IGenericRepository<T>
     {
-          List<T> ObtenerTodos();
+        List<T> ObtenerTodos();
+        T? ObtenerPorId(int id);
         void Crear(T entity);
         void Actualizar(T entity);
         void Eliminar(int id);
