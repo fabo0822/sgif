@@ -8,9 +8,9 @@ namespace sgif.domain.ports;
 
 public interface IProductoRepository
 {
-    Task<Producto?> GetByIdAsync(int id);
+    Task<Producto?> GetByIdAsync(string id);
     Task<IEnumerable<Producto>> GetAllAsync();
     Task AddAsync(Producto producto);
     Task UpdateAsync(Producto producto);
-    Task DeleteAsync(int id);
+    Task DeleteAsync(string id);
 }

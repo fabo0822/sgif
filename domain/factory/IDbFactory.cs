@@ -10,6 +10,7 @@ namespace sgif.domain.factory
     {
         IClienteRepository CrearClienteRepository();
         IProductoRepository CrearProductoRepository();
-        IPedidoRepository CrearPedidoRepository();
+        IEmpleadoRepository CrearEmpleadoRepository();
+        IProveedorRepository CrearProveedorRepository();
     }
 }

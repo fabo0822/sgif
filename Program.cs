@@ -3,22 +3,45 @@ using sgif.domain.entities;
 using sgif.domain.factory;
 using sgif.infrastructure.mysql;
 using sgif.application.UI.Clientes;
+using MySql.Data.MySqlClient;
+using System;
+using System.Threading.Tasks;
+using sgif.infrastructure.repositories;
 
 internal class Program
 {
     private static async Task Main(string[] args)
     {
-        string connStr = "server=localhost;database=app;user=root;password=fabo8DEJUNIO@;AllowPublicKeyRetrieval=true;SslMode=none;";
+        string connStr = "server=localhost;database=dbsgi;user=root;password=1234;AllowPublicKeyRetrieval=true;SslMode=none;";
         IDbFactory factory = new MySqlDbFactory(connStr);
         var uiCliente = new UICliente(factory);
         var servicioProducto = new ProductoService(factory.CrearProductoRepository());
+        var servicioEmpleado = new EmpleadoService(factory.CrearEmpleadoRepository());
+        var proveedorRepository = new ProveedorRepository(connStr);
+        var proveedorService = new ProveedorService(proveedorRepository);
+
+        try
+        {
+            using var conn = new MySqlConnection(connStr);
+            conn.Open();
+            Console.WriteLine("✅ Conexión a la base de datos exitosa.");
+            conn.Close();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("❌ Error al conectar con la base de datos:");
+            Console.WriteLine(ex.Message);
+            return;
+        }
 
         while (true)
         {
-            Console.WriteLine("\n--- MENÚ PRINCIPAL ---");
-            Console.WriteLine("1. Gestión de Clientes");
-            Console.WriteLine("2. Gestión de Productos");
-            Console.WriteLine("3. Gestión de Pedidos");
+            Console.Clear();
+            Console.WriteLine("\n=== SISTEMA DE GESTIÓN INTEGRAL ===");
+            Console.WriteLine("1. Gestión de Empleados");
+            Console.WriteLine("2. Gestión de Proveedores");
+            Console.WriteLine("3. Gestión de Productos");
+            Console.WriteLine("4. Gestión de Clientes");
             Console.WriteLine("0. Salir");
             Console.Write("Opción: ");
             var opcion = Console.ReadLine();
@@ -26,13 +49,20 @@ internal class Program
             switch (opcion)
             {
                 case "1":
-                    await uiCliente.MostrarMenu();
+                Console.Clear();
+                    await MenuEmpleados(servicioEmpleado);
                     break;
                 case "2":
-                    await MenuProductos(servicioProducto);
+                Console.Clear();
+                    await MenuProveedores(proveedorService);
                     break;
                 case "3":
-                    await MenuPedidos(factory);
+                Console.Clear();
+                    await MenuProductos(servicioProducto);
+                    break;
+                case "4":
+                Console.Clear();
+                    await uiCliente.MostrarMenu();
                     break;
                 case "0":
                     return;
@@ -43,15 +73,16 @@ internal class Program
         }
     }
 
-    private static async Task MenuClientes(ClienteService servicio)
+    private static async Task MenuEmpleados(EmpleadoService servicio)
     {
         while (true)
         {
-            Console.WriteLine("\n--- MENÚ CLIENTES ---");
-            Console.WriteLine("1. Mostrar todos");
-            Console.WriteLine("2. Crear nuevo");
-            Console.WriteLine("3. Actualizar");
-            Console.WriteLine("4. Eliminar");
+            Console.WriteLine("\n--- MENÚ EMPLEADOS ---");
+            Console.WriteLine("1. Mostrar todos los empleados");
+            Console.WriteLine("2. Registrar nuevo empleado");
+            Console.WriteLine("3. Actualizar empleado");
+            Console.WriteLine("4. Eliminar empleado");
+            Console.WriteLine("5. Ver detalles de empleado");
             Console.WriteLine("0. Volver al menú principal");
             Console.Write("Opción: ");
             var opcion = Console.ReadLine();
@@ -62,21 +93,16 @@ internal class Program
                     await servicio.MostrarTodos();
                     break;
                 case "2":
-                    Console.Write("Nombre: ");
-                    string nombre = Console.ReadLine() ?? string.Empty;
-                    await servicio.CrearCliente(nombre);
+                    await servicio.RegistrarEmpleado();
                     break;
                 case "3":
-                    Console.Write("ID del cliente a actualizar: ");
-                    int idA = int.Parse(Console.ReadLine()!);
-                    Console.Write("Nuevo nombre: ");
-                    string nuevoNombre = Console.ReadLine() ?? string.Empty;
-                    await servicio.ActualizarCliente(idA, nuevoNombre);
+                    await servicio.ActualizarEmpleado();
                     break;
                 case "4":
-                    Console.Write("ID del cliente a eliminar: ");
-                    int idE = int.Parse(Console.ReadLine()!);
-                    await servicio.EliminarCliente(idE);
+                    await servicio.EliminarEmpleado();
+                    break;
+                case "5":
+                    await servicio.VerDetalles();
                     break;
                 case "0":
                     return;
@@ -87,15 +113,68 @@ internal class Program
         }
     }
 
+    private static async Task MenuProveedores(ProveedorService servicio)
+    {
+        while (true)
+        {
+            Console.WriteLine("\n=== MENÚ PRINCIPAL ===");
+            Console.WriteLine("1. Registrar Proveedor");
+            Console.WriteLine("2. Listar Proveedores");
+            Console.WriteLine("3. Actualizar Proveedor");
+            Console.WriteLine("4. Eliminar Proveedor");
+            Console.WriteLine("5. Ver Productos del Proveedor");
+            Console.WriteLine("0. Salir");
+            Console.Write("\nSeleccione una opción: ");
+
+            var opcion = Console.ReadLine();
+
+            try
+            {
+                switch (opcion)
+                {
+                    case "1":
+                        await servicio.RegistrarProveedor();
+                        break;
+                    case "2":
+                        await servicio.ListarProveedores();
+                        break;
+                    case "3":
+                        await servicio.ActualizarProveedor();
+                        break;
+                    case "4":
+                        await servicio.EliminarProveedor();
+                        break;
+                    case "5":
+                        await servicio.VerProductosProveedor();
+                        break;
+                    case "0":
+                        Console.WriteLine("\n¡Hasta pronto!");
+                        return;
+                    default:
+                        Console.WriteLine("\nOpción no válida. Presione cualquier tecla para continuar...");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\nError: {ex.Message}");
+                Console.WriteLine("Presione cualquier tecla para continuar...");
+                Console.ReadKey();
+            }
+        }
+    }
+
     private static async Task MenuProductos(ProductoService servicioProducto)
     {
         while (true)
         {
             Console.WriteLine("\n--- MENÚ PRODUCTOS ---");
-            Console.WriteLine("1. Mostrar todos");
-            Console.WriteLine("2. Crear nuevo");
-            Console.WriteLine("3. Actualizar");
-            Console.WriteLine("4. Eliminar");
+            Console.WriteLine("1. Mostrar todos los productos");
+            Console.WriteLine("2. Registrar nuevo producto");
+            Console.WriteLine("3. Actualizar producto");
+            Console.WriteLine("4. Eliminar producto");
+            Console.WriteLine("5. Ver stock y detalles");
             Console.WriteLine("0. Volver al menú principal");
             Console.Write("Opción: ");
             var opcion = Console.ReadLine();
@@ -106,30 +185,16 @@ internal class Program
                     await servicioProducto.MostrarTodos();
                     break;
                 case "2":
-                    Producto producto = new Producto();
-                    Console.Write("Nombre: ");
-                    producto.Nombre = Console.ReadLine();
-                    Console.Write("Stock: ");
-                    producto.Stock = int.Parse(Console.ReadLine()!);
-                    Console.Write("Precio: ");
-                    producto.Precio = decimal.Parse(Console.ReadLine()!);
-                    await servicioProducto.CrearProducto(producto);
+                    await servicioProducto.RegistrarProducto();
                     break;
                 case "3":
-                    Console.Write("ID del producto a actualizar: ");
-                    int idA = int.Parse(Console.ReadLine()!);
-                    Console.Write("Nuevo nombre: ");
-                    string nuevoNombre = Console.ReadLine()!;
-                    Console.Write("Nuevo stock: ");
-                    int nuevoStock = int.Parse(Console.ReadLine()!);
-                    Console.Write("Nuevo precio: ");
-                    decimal nuevoPrecio = decimal.Parse(Console.ReadLine()!);
-                    await servicioProducto.ActualizarProducto(idA, nuevoNombre, nuevoStock, nuevoPrecio);
+                    await servicioProducto.ActualizarProducto();
                     break;
                 case "4":
-                    Console.Write("ID del producto a eliminar: ");
-                    int idE = int.Parse(Console.ReadLine()!);
-                    await servicioProducto.EliminarProducto(idE);
+                    await servicioProducto.EliminarProducto();
+                    break;
+                case "5":
+                    await servicioProducto.VerDetalles();
                     break;
                 case "0":
                     return;
@@ -138,91 +203,5 @@ internal class Program
                     break;
             }
         }
-    }
-
-    private static async Task MenuPedidos(IDbFactory factory)
-    {
-        var servicioPedido = new PedidoService(factory.CrearPedidoRepository());
-        var servicioCliente = new ClienteService(factory.CrearClienteRepository());
-        var servicioProducto = new ProductoService(factory.CrearProductoRepository());
-
-        while (true)
-        {
-            Console.WriteLine("\n--- MENÚ PEDIDOS ---");
-            Console.WriteLine("1. Mostrar todos los pedidos");
-            Console.WriteLine("2. Crear nuevo pedido");
-            Console.WriteLine("3. Ver detalles de un pedido");
-            Console.WriteLine("4. Cancelar pedido");
-            Console.WriteLine("0. Volver al menú principal");
-            Console.Write("Opción: ");
-            var opcion = Console.ReadLine();
-
-            switch (opcion)
-            {
-                case "1":
-                    await servicioPedido.MostrarTodos();
-                    break;
-                case "2":
-                    await CrearNuevoPedido(servicioPedido, servicioCliente, servicioProducto);
-                    break;
-                case "3":
-                    Console.Write("ID del pedido a ver: ");
-                    int idPedido = int.Parse(Console.ReadLine()!);
-                    await servicioPedido.MostrarDetalles(idPedido);
-                    break;
-                case "4":
-                    Console.Write("ID del pedido a cancelar: ");
-                    int idCancelar = int.Parse(Console.ReadLine()!);
-                    await servicioPedido.CancelarPedido(idCancelar);
-                    break;
-                case "0":
-                    return;
-                default:
-                    Console.WriteLine("❌ Opción inválida.");
-                    break;
-            }
-        }
-    }
-
-    private static async Task CrearNuevoPedido(PedidoService servicioPedido, ClienteService servicioCliente, ProductoService servicioProducto)
-    {
-        Console.WriteLine("\n--- CREAR NUEVO PEDIDO ---");
-        
-        // Seleccionar cliente
-        Console.WriteLine("\nClientes disponibles:");
-        await servicioCliente.MostrarTodos();
-        Console.Write("ID del cliente: ");
-        int idCliente = int.Parse(Console.ReadLine()!);
-
-        var pedido = new Pedido { ClienteId = idCliente, Estado = "Pendiente" };
-        var detalles = new List<DetallePedido>();
-
-        // Agregar productos al pedido
-        while (true)
-        {
-            Console.WriteLine("\nProductos disponibles:");
-            await servicioProducto.MostrarTodos();
-            Console.Write("ID del producto (0 para terminar): ");
-            int idProducto = int.Parse(Console.ReadLine()!);
-            
-            if (idProducto == 0) break;
-
-            Console.Write("Cantidad: ");
-            int cantidad = int.Parse(Console.ReadLine()!);
-
-            var producto = await servicioProducto.ObtenerProducto(idProducto);
-            if (producto != null)
-            {
-                detalles.Add(new DetallePedido
-                {
-                    ProductoId = idProducto.ToString(),
-                    Cantidad = cantidad,
-                    PrecioUnitario = producto.Precio,
-                    Subtotal = producto.Precio * cantidad
-                });
-            }
-        }
-
-        await servicioPedido.CrearPedido(pedido, detalles);
     }
 }

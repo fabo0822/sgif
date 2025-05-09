@@ -23,9 +23,14 @@ namespace sgif.infrastructure.mysql
             return new ProductoRepository(_connectionString);
         }
 
-        public IPedidoRepository CrearPedidoRepository()
+        public IEmpleadoRepository CrearEmpleadoRepository()
         {
-            return new PedidoRepository(_connectionString);
+            return new EmpleadoRepository(_connectionString);
+        }
+
+        public IProveedorRepository CrearProveedorRepository()
+        {
+            return new ProveedorRepository(_connectionString);
         }
     }
 } 

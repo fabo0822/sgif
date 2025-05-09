@@ -1,4 +1,3 @@
-
 -- TABLAS DE SOPORTE GEOGRÁFICO
 create database dbsgi;
 
@@ -72,7 +71,7 @@ CREATE TABLE Productos (
 CREATE TABLE Proveedor (
     id INT PRIMARY KEY AUTO_INCREMENT,
     tercero_id VARCHAR(20),
-    dia_pago INT,
+    fecha_ingreso DATE,
     descuento DOUBLE,
     FOREIGN KEY (tercero_id) REFERENCES Terceros(id)
 );
