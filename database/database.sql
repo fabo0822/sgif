@@ -214,4 +214,4 @@ CREATE TABLE Empresa (
     ciudad_id INT,
     fecha_reg DATE,
     FOREIGN KEY (ciudad_id) REFERENCES Ciudad(id)
-);
+); 

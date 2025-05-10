@@ -31,37 +31,61 @@ namespace sgif.application.services
             Console.Write("Email: ");
             proveedor.Email = Console.ReadLine() ?? string.Empty;
 
-            Console.Write("Fecha de Ingreso (yyyy-MM-dd): ");
-            if (DateTime.TryParse(Console.ReadLine(), out DateTime fechaIngreso))
+            bool fechaValida = false;
+            while (!fechaValida)
             {
-                proveedor.FechaIngreso = fechaIngreso;
-            }
-            else
-            {
-                Console.WriteLine("Fecha inválida. Se usará la fecha actual.");
-                proveedor.FechaIngreso = DateTime.Now;
-            }
-
-            Console.Write("Descuento (%): ");
-            if (double.TryParse(Console.ReadLine(), out double descuento))
-            {
-                proveedor.Descuento = descuento;
-            }
-            else
-            {
-                Console.WriteLine("Valor inválido. Se usará 0%.");
-                proveedor.Descuento = 0;
+                Console.Write("\nFecha de Ingreso (yyyy-MM-dd): ");
+                string fechaStr = Console.ReadLine() ?? string.Empty;
+                
+                if (DateTime.TryParseExact(fechaStr, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out DateTime fecha))
+                {
+                    proveedor.FechaIngreso = fecha;
+                    fechaValida = true;
+                }
+                else
+                {
+                    Console.WriteLine("❌ Formato de fecha inválido. Por favor use el formato yyyy-MM-dd (ejemplo: 2024-03-21)");
+                }
             }
 
-            Console.Write("Tipo de Documento (1-CC, 2-NIT, 3-Pasaporte): ");
-            if (int.TryParse(Console.ReadLine(), out int tipoDoc))
+            bool descuentoValido = false;
+            while (!descuentoValido)
             {
-                proveedor.TipoDocumentoId = tipoDoc;
+                Console.Write("\nDescuento (%): ");
+                string descuentoStr = Console.ReadLine() ?? string.Empty;
+                
+                if (double.TryParse(descuentoStr, out double descuento) && descuento >= 0 && descuento <= 100)
+                {
+                    proveedor.Descuento = descuento;
+                    descuentoValido = true;
+                }
+                else
+                {
+                    Console.WriteLine("❌ Descuento inválido. Por favor ingrese un número entre 0 y 100.");
+                }
             }
-            else
+
+            bool tipoDocValido = false;
+            while (!tipoDocValido)
             {
-                Console.WriteLine("Valor inválido. Se usará CC (1).");
-                proveedor.TipoDocumentoId = 1;
+                Console.WriteLine("\nTipos de documento disponibles:");
+                Console.WriteLine("1. Cédula de Ciudadanía");
+                Console.WriteLine("2. NIT");
+                Console.WriteLine("3. Pasaporte");
+                Console.WriteLine("4. Cédula de Extranjería");
+                Console.WriteLine("5. Tarjeta de Identidad");
+                Console.Write("\nSeleccione el tipo de documento (1-5): ");
+                
+                string tipoDocStr = Console.ReadLine() ?? string.Empty;
+                if (int.TryParse(tipoDocStr, out int tipoDoc) && tipoDoc >= 1 && tipoDoc <= 5)
+                {
+                    proveedor.TipoDocumentoId = tipoDoc;
+                    tipoDocValido = true;
+                }
+                else
+                {
+                    Console.WriteLine("❌ Tipo de documento inválido. Por favor seleccione una opción entre 1 y 5.");
+                }
             }
 
             Console.Write("Ciudad ID: ");

@@ -7,6 +7,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Threading.Tasks;
 using sgif.infrastructure.repositories;
+using System.IO;
 
 internal class Program
 {
@@ -16,7 +17,7 @@ internal class Program
         IDbFactory factory = new MySqlDbFactory(connStr);
         var uiCliente = new UICliente(factory);
         var servicioProducto = new ProductoService(factory.CrearProductoRepository());
-        var servicioEmpleado = new EmpleadoService(factory.CrearEmpleadoRepository());
+        var servicioEmpleado = new EmpleadoService(factory.CrearEmpleadoRepository(), connStr);
         var proveedorRepository = new ProveedorRepository(connStr);
         var proveedorService = new ProveedorService(proveedorRepository);
 
@@ -25,6 +26,10 @@ internal class Program
             using var conn = new MySqlConnection(connStr);
             conn.Open();
             Console.WriteLine("✅ Conexión a la base de datos exitosa.");
+            
+            // Inicializar datos necesarios
+            await InicializarDatos(conn);
+            
             conn.Close();
         }
         catch (Exception ex)
@@ -65,8 +70,10 @@ internal class Program
                     await uiCliente.MostrarMenu();
                     break;
                 case "0":
+                
                     return;
                 default:
+               
                     Console.WriteLine("❌ Opción inválida.");
                     break;
             }
@@ -90,23 +97,30 @@ internal class Program
             switch (opcion)
             {
                 case "1":
+                 Console.Clear();
                     await servicio.MostrarTodos();
                     break;
                 case "2":
+                 Console.Clear();
                     await servicio.RegistrarEmpleado();
                     break;
                 case "3":
+                 Console.Clear();
                     await servicio.ActualizarEmpleado();
                     break;
                 case "4":
+                 Console.Clear();
                     await servicio.EliminarEmpleado();
                     break;
                 case "5":
+                 Console.Clear();
                     await servicio.VerDetalles();
                     break;
                 case "0":
+                 
                     return;
                 default:
+                 
                     Console.WriteLine("❌ Opción inválida.");
                     break;
             }
@@ -133,24 +147,31 @@ internal class Program
                 switch (opcion)
                 {
                     case "1":
+                    Console.Clear();
                         await servicio.RegistrarProveedor();
                         break;
                     case "2":
+                    Console.Clear();
                         await servicio.ListarProveedores();
                         break;
                     case "3":
+                    Console.Clear();
                         await servicio.ActualizarProveedor();
                         break;
                     case "4":
+                    Console.Clear();
                         await servicio.EliminarProveedor();
                         break;
                     case "5":
+                    Console.Clear();
                         await servicio.VerProductosProveedor();
                         break;
                     case "0":
+                   
                         Console.WriteLine("\n¡Hasta pronto!");
                         return;
                     default:
+                  
                         Console.WriteLine("\nOpción no válida. Presione cualquier tecla para continuar...");
                         Console.ReadKey();
                         break;
@@ -182,26 +203,62 @@ internal class Program
             switch (opcion)
             {
                 case "1":
+                Console.Clear();
                     await servicioProducto.MostrarTodos();
                     break;
                 case "2":
+                Console.Clear();
                     await servicioProducto.RegistrarProducto();
                     break;
                 case "3":
+                Console.Clear();
                     await servicioProducto.ActualizarProducto();
                     break;
                 case "4":
+                Console.Clear();
                     await servicioProducto.EliminarProducto();
                     break;
                 case "5":
+                Console.Clear();
                     await servicioProducto.VerDetalles();
                     break;
                 case "0":
+                
                     return;
                 default:
+                
                     Console.WriteLine("❌ Opción inválida.");
                     break;
             }
+        }
+    }
+
+    private static async Task InicializarDatos(MySqlConnection connection)
+    {
+        try
+        {
+            // Verificar si ya existen datos
+            using var checkCmd = new MySqlCommand("SELECT COUNT(*) FROM TipoDocumento", connection);
+            var count = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
+            
+            if (count == 0)
+            {
+                Console.WriteLine("Inicializando datos en la base de datos...");
+                
+                // Leer el script SQL
+                string scriptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "database", "insert_data.sql");
+                string script = await File.ReadAllTextAsync(scriptPath);
+                
+                // Ejecutar el script
+                using var cmd = new MySqlCommand(script, connection);
+                await cmd.ExecuteNonQueryAsync();
+                
+                Console.WriteLine("Datos inicializados correctamente.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al inicializar datos: {ex.Message}");
         }
     }
 }

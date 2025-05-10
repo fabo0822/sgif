@@ -88,6 +88,17 @@ namespace sgif.infrastructure.repositories
 
             try
             {
+                // Verificar si existe el tipo de documento
+                var cmdCheckTipoDoc = new MySqlCommand(
+                    "SELECT COUNT(*) FROM TipoDocumento WHERE id = @tipo_doc_id", conn, transaction);
+                cmdCheckTipoDoc.Parameters.AddWithValue("@tipo_doc_id", empleado.TipoDocumentoId);
+                var tipoDocExists = Convert.ToInt32(await cmdCheckTipoDoc.ExecuteScalarAsync()) > 0;
+
+                if (!tipoDocExists)
+                {
+                    throw new Exception($"El tipo de documento con ID {empleado.TipoDocumentoId} no existe.");
+                }
+
                 // Verificar si existe el tipo de tercero para empleados (id = 2)
                 var cmdCheckTipo = new MySqlCommand(
                     "SELECT COUNT(*) FROM TipoTercero WHERE id = 2", conn, transaction);
@@ -99,6 +110,17 @@ namespace sgif.infrastructure.repositories
                     var cmdInsertTipo = new MySqlCommand(
                         "INSERT INTO TipoTercero (id, descripcion) VALUES (2, 'Empleado')", conn, transaction);
                     await cmdInsertTipo.ExecuteNonQueryAsync();
+                }
+
+                // Verificar si existe la ciudad
+                var cmdCheckCiudad = new MySqlCommand(
+                    "SELECT COUNT(*) FROM Ciudad WHERE id = @ciudad_id", conn, transaction);
+                cmdCheckCiudad.Parameters.AddWithValue("@ciudad_id", empleado.CiudadId);
+                var ciudadExists = Convert.ToInt32(await cmdCheckCiudad.ExecuteScalarAsync()) > 0;
+
+                if (!ciudadExists)
+                {
+                    throw new Exception($"La ciudad con ID {empleado.CiudadId} no existe.");
                 }
 
                 // Primero insertar en Terceros
@@ -130,10 +152,10 @@ namespace sgif.infrastructure.repositories
                 await cmdEmpleado.ExecuteNonQueryAsync();
                 await transaction.CommitAsync();
             }
-            catch
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                throw;
+                throw new Exception($"Error al registrar empleado: {ex.Message}", ex);
             }
         }
 
