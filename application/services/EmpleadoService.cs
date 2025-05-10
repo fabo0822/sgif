@@ -33,109 +33,191 @@ namespace sgif.application.services
 
         public async Task RegistrarEmpleado()
         {
-            Console.Clear();
-            Console.WriteLine("\n=== REGISTRAR NUEVO EMPLEADO ===");
-            var empleado = new Empleado();
+            Console.WriteLine("\n=== Registro de Empleado ===");
 
-            Console.Write("Nombre: ");
-            empleado.Nombre = Console.ReadLine() ?? string.Empty;
-
-            Console.Write("Apellidos: ");
-            empleado.Apellidos = Console.ReadLine() ?? string.Empty;
-
-            Console.Write("Email: ");
-            empleado.Email = Console.ReadLine() ?? string.Empty;
-
-            Console.Write("Salario Base: ");
-            if (!decimal.TryParse(Console.ReadLine(), out decimal salario))
+            // Validar y obtener nombre
+            string nombre;
+            do
             {
-                Console.WriteLine("❌ Salario inválido.");
-                return;
-            }
-            empleado.SalarioBase = salario;
+                Console.Write("Ingrese el nombre del empleado: ");
+                nombre = Console.ReadLine()?.Trim() ?? "";
+                if (string.IsNullOrWhiteSpace(nombre))
+                {
+                    Console.WriteLine("Error: El nombre no puede estar vacío.");
+                }
+            } while (string.IsNullOrWhiteSpace(nombre));
 
-            Console.WriteLine("\nEPS disponibles:");
-            Console.WriteLine("1. Sura");
-            Console.WriteLine("2. Nueva EPS");
-            Console.WriteLine("3. Sanitas");
-            Console.Write("\nSeleccione la EPS (1-3): ");
-            if (!int.TryParse(Console.ReadLine(), out int epsId) || epsId < 1 || epsId > 3)
+            // Validar y obtener apellidos
+            string apellidos;
+            do
             {
-                Console.WriteLine("❌ EPS inválida.");
-                return;
-            }
-            empleado.EpsId = epsId;
+                Console.Write("Ingrese los apellidos del empleado: ");
+                apellidos = Console.ReadLine()?.Trim() ?? "";
+                if (string.IsNullOrWhiteSpace(apellidos))
+                {
+                    Console.WriteLine("Error: Los apellidos no pueden estar vacíos.");
+                }
+            } while (string.IsNullOrWhiteSpace(apellidos));
 
-            Console.WriteLine("\nARL disponibles:");
-            Console.WriteLine("1. Sura");
-            Console.WriteLine("2. Colmena");
-            Console.WriteLine("3. Positiva");
-            Console.Write("\nSeleccione la ARL (1-3): ");
-            if (!int.TryParse(Console.ReadLine(), out int arlId) || arlId < 1 || arlId > 3)
+            // Validar y obtener email
+            string email;
+            bool emailValido = false;
+            do
             {
-                Console.WriteLine("❌ ARL inválida.");
-                return;
-            }
-            empleado.ArlId = arlId;
+                Console.Write("Ingrese el email del empleado: ");
+                email = Console.ReadLine()?.Trim() ?? "";
+                if (string.IsNullOrWhiteSpace(email))
+                {
+                    Console.WriteLine("Error: El email no puede estar vacío.");
+                    continue;
+                }
+                if (!IsValidEmail(email))
+                {
+                    Console.WriteLine("Error: El formato del email no es válido.");
+                    continue;
+                }
+                if (await EmailExistsAsync(email))
+                {
+                    Console.WriteLine("Error: Este email ya está registrado.");
+                    continue;
+                }
+                emailValido = true;
+            } while (!emailValido);
 
+            // Mostrar y validar tipo de documento
             Console.WriteLine("\nTipos de documento disponibles:");
             Console.WriteLine("1. Cédula de Ciudadanía");
             Console.WriteLine("2. Cédula de Extranjería");
             Console.WriteLine("3. Pasaporte");
             Console.WriteLine("4. Tarjeta de Identidad");
-            Console.Write("\nSeleccione el tipo de documento (1-4): ");
-            if (!int.TryParse(Console.ReadLine(), out int tipoDocId) || tipoDocId < 1 || tipoDocId > 4)
-            {
-                Console.WriteLine("❌ Tipo de documento inválido.");
-                return;
-            }
-            empleado.TipoDocumentoId = tipoDocId;
 
+            int tipoDocumentoId;
+            do
+            {
+                Console.Write("\nSeleccione el tipo de documento (1-4): ");
+                if (!int.TryParse(Console.ReadLine(), out tipoDocumentoId) || tipoDocumentoId < 1 || tipoDocumentoId > 4)
+                {
+                    Console.WriteLine("Error: Por favor seleccione un número válido entre 1 y 4.");
+                }
+            } while (tipoDocumentoId < 1 || tipoDocumentoId > 4);
+
+            // Mostrar y validar ciudad
             Console.WriteLine("\nCiudades disponibles:");
-            using (var conn = new MySqlConnection(_connectionString))
-            {
-                await conn.OpenAsync();
-                var cmd = new MySqlCommand("SELECT id, nombre FROM Ciudad ORDER BY nombre", conn);
-                using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    Console.WriteLine($"{reader.GetInt32(0)}. {reader.GetString(1)}");
-                }
-            }
-            Console.Write("\nSeleccione la ciudad: ");
-            if (!int.TryParse(Console.ReadLine(), out int ciudadId))
-            {
-                Console.WriteLine("❌ Ciudad inválida.");
-                return;
-            }
-            empleado.CiudadId = ciudadId;
+            Console.WriteLine("1. Medellín");
+            Console.WriteLine("2. Bogotá");
+            Console.WriteLine("3. Cali");
+            Console.WriteLine("4. Barranquilla");
+            Console.WriteLine("5. Cartagena");
+            Console.WriteLine("6. Bucaramanga");
+            Console.WriteLine("7. Pereira");
+            Console.WriteLine("8. Santa Marta");
+            Console.WriteLine("9. Ibagué");
+            Console.WriteLine("10. Cúcuta");
+            Console.WriteLine("11. Pasto");
+            Console.WriteLine("12. Manizales");
+            Console.WriteLine("13. Neiva");
+            Console.WriteLine("14. Villavicencio");
+            Console.WriteLine("15. Montería");
+            Console.WriteLine("16. Valledupar");
+            Console.WriteLine("17. Armenia");
+            Console.WriteLine("18. Sincelejo");
+            Console.WriteLine("19. Popayán");
+            Console.WriteLine("20. Tunja");
 
-            bool fechaValida = false;
-            while (!fechaValida)
+            int ciudadId;
+            do
             {
-                Console.Write("\nFecha de Ingreso (yyyy-MM-dd): ");
-                string fechaStr = Console.ReadLine() ?? string.Empty;
-                
-                if (DateTime.TryParseExact(fechaStr, "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out DateTime fecha))
+                Console.Write("\nSeleccione la ciudad (1-20): ");
+                if (!int.TryParse(Console.ReadLine(), out ciudadId) || ciudadId < 1 || ciudadId > 20)
                 {
-                    empleado.FechaIngreso = fecha;
-                    fechaValida = true;
+                    Console.WriteLine("Error: Por favor seleccione una ciudad válida entre 1 y 20.");
                 }
-                else
-                {
-                    Console.WriteLine("❌ Formato de fecha inválido. Por favor use el formato yyyy-MM-dd (ejemplo: 2024-03-21)");
-                }
-            }
+            } while (ciudadId < 1 || ciudadId > 20);
 
+            // Validar y obtener salario base
+            decimal salarioBase;
+            do
+            {
+                Console.Write("Ingrese el salario base: ");
+                if (!decimal.TryParse(Console.ReadLine(), out salarioBase) || salarioBase <= 0)
+                {
+                    Console.WriteLine("Error: El salario debe ser un número positivo.");
+                }
+            } while (salarioBase <= 0);
+
+            // Mostrar y validar EPS
+            Console.WriteLine("\nEPS disponibles:");
+            Console.WriteLine("1. Sura");
+            Console.WriteLine("2. Nueva EPS");
+            Console.WriteLine("3. Sanitas");
+            Console.WriteLine("4. Coomeva");
+            Console.WriteLine("5. Compensar");
+
+            int epsId;
+            do
+            {
+                Console.Write("\nSeleccione la EPS (1-5): ");
+                if (!int.TryParse(Console.ReadLine(), out epsId) || epsId < 1 || epsId > 5)
+                {
+                    Console.WriteLine("Error: Por favor seleccione una EPS válida entre 1 y 5.");
+                }
+            } while (epsId < 1 || epsId > 5);
+
+            // Mostrar y validar ARL
+            Console.WriteLine("\nARL disponibles:");
+            Console.WriteLine("1. Sura");
+            Console.WriteLine("2. Colmena");
+            Console.WriteLine("3. Positiva");
+            Console.WriteLine("4. La Equidad");
+            Console.WriteLine("5. Seguros Bolívar");
+
+            int arlId;
+            do
+            {
+                Console.Write("\nSeleccione la ARL (1-5): ");
+                if (!int.TryParse(Console.ReadLine(), out arlId) || arlId < 1 || arlId > 5)
+                {
+                    Console.WriteLine("Error: Por favor seleccione una ARL válida entre 1 y 5.");
+                }
+            } while (arlId < 1 || arlId > 5);
+
+            var empleado = new Empleado
+            {
+                Nombre = nombre,
+                Apellidos = apellidos,
+                Email = email,
+                TipoDocumentoId = tipoDocumentoId,
+                CiudadId = ciudadId,
+                FechaIngreso = DateTime.Now,
+                SalarioBase = salarioBase,
+                EpsId = epsId,
+                ArlId = arlId
+            };
+
+            await _repository.AddAsync(empleado);
+            Console.WriteLine("\nEmpleado registrado exitosamente.");
+        }
+
+        private bool IsValidEmail(string email)
+        {
             try
             {
-                await _repository.AddAsync(empleado);
-                Console.WriteLine("✅ Empleado registrado exitosamente.");
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"❌ Error al registrar empleado: {ex.Message}");
+                return false;
             }
+        }
+
+        private async Task<bool> EmailExistsAsync(string email)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            await conn.OpenAsync();
+            var cmd = new MySqlCommand("SELECT COUNT(*) FROM Terceros WHERE email = @email", conn);
+            cmd.Parameters.AddWithValue("@email", email);
+            return Convert.ToInt32(await cmd.ExecuteScalarAsync()) > 0;
         }
 
         public async Task ActualizarEmpleado()

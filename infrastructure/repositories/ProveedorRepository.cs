@@ -84,17 +84,31 @@ namespace sgif.infrastructure.repositories
 
             try
             {
-                // Verificar si existe el tipo de tercero para proveedores (id = 1)
+                // Verificar la estructura de la tabla Proveedor
+                var cmdCheckStructure = new MySqlCommand(
+                    "SHOW COLUMNS FROM Proveedor", conn, transaction);
+                using var reader = await cmdCheckStructure.ExecuteReaderAsync();
+                var columns = new List<string>();
+                while (await reader.ReadAsync())
+                {
+                    columns.Add(reader.GetString(0));
+                }
+                await reader.CloseAsync();
+
+                if (!columns.Contains("fecha_ingreso"))
+                {
+                    throw new Exception($"La tabla Proveedor no tiene la columna fecha_ingreso. Columnas encontradas: {string.Join(", ", columns)}");
+                }
+
+                // Verificar si existe el tipo de tercero seleccionado
                 var cmdCheckTipo = new MySqlCommand(
-                    "SELECT COUNT(*) FROM TipoTercero WHERE id = 1", conn, transaction);
+                    "SELECT COUNT(*) FROM TipoTercero WHERE id = @tipo_tercero_id", conn, transaction);
+                cmdCheckTipo.Parameters.AddWithValue("@tipo_tercero_id", proveedor.TipoTerceroId);
                 var tipoExists = Convert.ToInt32(await cmdCheckTipo.ExecuteScalarAsync()) > 0;
 
                 if (!tipoExists)
                 {
-                    // Insertar el tipo de tercero si no existe
-                    var cmdInsertTipo = new MySqlCommand(
-                        "INSERT INTO TipoTercero (id, descripcion) VALUES (1, 'Proveedor')", conn, transaction);
-                    await cmdInsertTipo.ExecuteNonQueryAsync();
+                    throw new Exception($"El tipo de tercero con ID {proveedor.TipoTerceroId} no existe. Los tipos válidos son: 3 (Proveedor), 6 (Proveedor Premium), 7 (Proveedor Local), 12 (Proveedor Internacional), 13 (Proveedor Nacional), 18 (Proveedor Exclusivo)");
                 }
 
                 // Verificar si existe el tipo de documento
@@ -105,24 +119,34 @@ namespace sgif.infrastructure.repositories
 
                 if (!docExists)
                 {
-                    // Insertar el tipo de documento si no existe
-                    var cmdInsertDoc = new MySqlCommand(
-                        "INSERT INTO TipoDocumento (id, descripcion) VALUES (@id, 'Cédula')", conn, transaction);
-                    cmdInsertDoc.Parameters.AddWithValue("@id", proveedor.TipoDocumentoId);
-                    await cmdInsertDoc.ExecuteNonQueryAsync();
+                    throw new Exception($"El tipo de documento con ID {proveedor.TipoDocumentoId} no existe. Los tipos válidos son: 1 (Cédula de Ciudadanía), 2 (Cédula de Extranjería), 3 (Pasaporte), 4 (Tarjeta de Identidad), 5 (NIT)");
                 }
+
+                // Verificar si existe la ciudad
+                var cmdCheckCiudad = new MySqlCommand(
+                    "SELECT COUNT(*) FROM Ciudad WHERE id = @ciudad_id", conn, transaction);
+                cmdCheckCiudad.Parameters.AddWithValue("@ciudad_id", proveedor.CiudadId);
+                var ciudadExists = Convert.ToInt32(await cmdCheckCiudad.ExecuteScalarAsync()) > 0;
+
+                if (!ciudadExists)
+                {
+                    throw new Exception($"La ciudad con ID {proveedor.CiudadId} no existe. Las ciudades válidas son del 1 al 20");
+                }
+
+                // Generar ID único para el tercero
+                var terceroId = Guid.NewGuid().ToString("N").Substring(0, 20);
 
                 // Primero insertar en Terceros
                 var cmdTercero = new MySqlCommand(
                     @"INSERT INTO Terceros (id, nombre, apellidos, email, tipo_doc_id, tipo_tercero_id, ciudad_id) 
-                    VALUES (@id, @nombre, @apellidos, @email, @tipo_doc_id, 1, @ciudad_id)", conn, transaction);
+                    VALUES (@id, @nombre, @apellidos, @email, @tipo_doc_id, @tipo_tercero_id, @ciudad_id)", conn, transaction);
                 
-                var terceroId = Guid.NewGuid().ToString("N").Substring(0, 20);
                 cmdTercero.Parameters.AddWithValue("@id", terceroId);
                 cmdTercero.Parameters.AddWithValue("@nombre", proveedor.Nombre);
                 cmdTercero.Parameters.AddWithValue("@apellidos", proveedor.Apellidos);
                 cmdTercero.Parameters.AddWithValue("@email", proveedor.Email);
                 cmdTercero.Parameters.AddWithValue("@tipo_doc_id", proveedor.TipoDocumentoId);
+                cmdTercero.Parameters.AddWithValue("@tipo_tercero_id", proveedor.TipoTerceroId);
                 cmdTercero.Parameters.AddWithValue("@ciudad_id", proveedor.CiudadId);
 
                 await cmdTercero.ExecuteNonQueryAsync();
@@ -133,16 +157,16 @@ namespace sgif.infrastructure.repositories
                     VALUES (@tercero_id, @fecha_ingreso, @descuento)", conn, transaction);
 
                 cmdProveedor.Parameters.AddWithValue("@tercero_id", terceroId);
-                cmdProveedor.Parameters.AddWithValue("@fecha_ingreso", proveedor.FechaIngreso);
+                cmdProveedor.Parameters.AddWithValue("@fecha_ingreso", proveedor.FechaIngreso.Date);
                 cmdProveedor.Parameters.AddWithValue("@descuento", proveedor.Descuento);
 
                 await cmdProveedor.ExecuteNonQueryAsync();
                 await transaction.CommitAsync();
             }
-            catch
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                throw;
+                throw new Exception($"Error al registrar proveedor: {ex.Message}\nStackTrace: {ex.StackTrace}", ex);
             }
         }
 
@@ -174,9 +198,9 @@ namespace sgif.infrastructure.repositories
                 var cmdProveedor = new MySqlCommand(
                     @"UPDATE Proveedor 
                     SET fecha_ingreso = @fecha_ingreso, descuento = @descuento 
-                    WHERE id = @id", conn, transaction);
+                    WHERE tercero_id = @tercero_id", conn, transaction);
 
-                cmdProveedor.Parameters.AddWithValue("@id", proveedor.Id);
+                cmdProveedor.Parameters.AddWithValue("@tercero_id", proveedor.TerceroId);
                 cmdProveedor.Parameters.AddWithValue("@fecha_ingreso", proveedor.FechaIngreso);
                 cmdProveedor.Parameters.AddWithValue("@descuento", proveedor.Descuento);
 
@@ -233,12 +257,20 @@ namespace sgif.infrastructure.repositories
             using var conn = new MySqlConnection(_connectionString);
             await conn.OpenAsync();
 
+            // Primero obtener el tercero_id del proveedor
+            var cmdGetTercero = new MySqlCommand(
+                "SELECT tercero_id FROM Proveedor WHERE id = @id", conn);
+            cmdGetTercero.Parameters.AddWithValue("@id", proveedorId);
+            var terceroId = (string?)await cmdGetTercero.ExecuteScalarAsync();
+            
+            if (terceroId == null) return productos;
+
             var cmd = new MySqlCommand(
                 @"SELECT p.* 
                 FROM Productos p 
                 JOIN Producto_Proveedor pp ON p.id = pp.producto_id 
-                WHERE pp.tercero_id = (SELECT tercero_id FROM Proveedor WHERE id = @proveedorId)", conn);
-            cmd.Parameters.AddWithValue("@proveedorId", proveedorId);
+                WHERE pp.tercero_id = @tercero_id", conn);
+            cmd.Parameters.AddWithValue("@tercero_id", terceroId);
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
