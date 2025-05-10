@@ -11,9 +11,9 @@ namespace sgif.application.UI.Clientes
     {
         private readonly ClienteService _servicio;
 
-        public UICliente(IDbFactory factory)
+        public UICliente(IDbFactory factory, string connectionString)
         {
-            _servicio = new ClienteService(factory.CrearClienteRepository());
+            _servicio = new ClienteService(factory.CrearClienteRepository(), connectionString);
         }
 
         public async Task MostrarMenu()

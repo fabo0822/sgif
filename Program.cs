@@ -15,22 +15,22 @@ internal class Program
     {
         string connStr = "server=localhost;database=dbsgi;user=root;password=1234;AllowPublicKeyRetrieval=true;SslMode=none;";
         IDbFactory factory = new MySqlDbFactory(connStr);
-        var uiCliente = new UICliente(factory);
-        var servicioProducto = new ProductoService(factory.CrearProductoRepository());
+        var uiCliente = new UICliente(factory, connStr);
+        var servicioProducto = new ProductoService(connStr, factory.CrearProductoRepository());
         var servicioEmpleado = new EmpleadoService(factory.CrearEmpleadoRepository(), connStr);
         var proveedorRepository = new ProveedorRepository(connStr);
-        var proveedorService = new ProveedorService(proveedorRepository);
+        var proveedorService = new ProveedorService(proveedorRepository, connStr);
 
         try
         {
             using var conn = new MySqlConnection(connStr);
-            conn.Open();
+            await conn.OpenAsync();
             Console.WriteLine("✅ Conexión a la base de datos exitosa.");
             
             // Inicializar datos necesarios
             await InicializarDatos(conn);
             
-            conn.Close();
+            await conn.CloseAsync();
         }
         catch (Exception ex)
         {
@@ -70,10 +70,8 @@ internal class Program
                     await uiCliente.MostrarMenu();
                     break;
                 case "0":
-                
                     return;
                 default:
-               
                     Console.WriteLine("❌ Opción inválida.");
                     break;
             }
@@ -117,10 +115,8 @@ internal class Program
                     await servicio.VerDetalles();
                     break;
                 case "0":
-                 
                     return;
                 default:
-                 
                     Console.WriteLine("❌ Opción inválida.");
                     break;
             }
@@ -167,11 +163,9 @@ internal class Program
                         await servicio.VerProductosProveedor();
                         break;
                     case "0":
-                   
                         Console.WriteLine("\n¡Hasta pronto!");
                         return;
                     default:
-                  
                         Console.WriteLine("\nOpción no válida. Presione cualquier tecla para continuar...");
                         Console.ReadKey();
                         break;
@@ -223,22 +217,20 @@ internal class Program
                     await servicioProducto.VerDetalles();
                     break;
                 case "0":
-                
                     return;
                 default:
-                
                     Console.WriteLine("❌ Opción inválida.");
                     break;
             }
         }
     }
 
-    private static async Task InicializarDatos(MySqlConnection connection)
+    private static async Task InicializarDatos(MySqlConnection conn)
     {
         try
         {
             // Verificar si ya existen datos
-            using var checkCmd = new MySqlCommand("SELECT COUNT(*) FROM TipoDocumento", connection);
+            using var checkCmd = new MySqlCommand("SELECT COUNT(*) FROM TipoDocumento", conn);
             var count = Convert.ToInt32(await checkCmd.ExecuteScalarAsync());
             
             if (count == 0)
@@ -250,7 +242,7 @@ internal class Program
                 string script = await File.ReadAllTextAsync(scriptPath);
                 
                 // Ejecutar el script
-                using var cmd = new MySqlCommand(script, connection);
+                using var cmd = new MySqlCommand(script, conn);
                 await cmd.ExecuteNonQueryAsync();
                 
                 Console.WriteLine("Datos inicializados correctamente.");
