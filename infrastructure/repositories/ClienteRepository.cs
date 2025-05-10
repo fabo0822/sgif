@@ -19,7 +19,7 @@ namespace sgif.infrastructure.repositories
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
             
-            var command = new MySqlCommand("SELECT * FROM Cliente WHERE id = @id", connection);
+            var command = new MySqlCommand("SELECT * FROM clientes WHERE id = @id", connection);
             command.Parameters.AddWithValue("@id", id);
 
             using var reader = await command.ExecuteReaderAsync();
@@ -28,7 +28,11 @@ namespace sgif.infrastructure.repositories
                 return new Cliente
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
-                    Nombre = reader.GetString(reader.GetOrdinal("nombre"))
+                    Nombre = reader.GetString(reader.GetOrdinal("nombre")),
+                    Direccion = reader.GetString(reader.GetOrdinal("direccion")),
+                    Ciudad = reader.GetString(reader.GetOrdinal("ciudad")),
+                    Telefono = reader.GetString(reader.GetOrdinal("telefono")),
+                    Correo = reader.GetString(reader.GetOrdinal("correo"))
                 };
             }
             return null;
@@ -40,7 +44,7 @@ namespace sgif.infrastructure.repositories
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
             
-            var command = new MySqlCommand("SELECT * FROM Cliente", connection);
+            var command = new MySqlCommand("SELECT * FROM clientes", connection);
             using var reader = await command.ExecuteReaderAsync();
             
             while (await reader.ReadAsync())
@@ -48,7 +52,11 @@ namespace sgif.infrastructure.repositories
                 clientes.Add(new Cliente
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
-                    Nombre = reader.GetString(reader.GetOrdinal("nombre"))
+                    Nombre = reader.GetString(reader.GetOrdinal("nombre")),
+                    Direccion = reader.GetString(reader.GetOrdinal("direccion")),
+                    Ciudad = reader.GetString(reader.GetOrdinal("ciudad")),
+                    Telefono = reader.GetString(reader.GetOrdinal("telefono")),
+                    Correo = reader.GetString(reader.GetOrdinal("correo"))
                 });
             }
             return clientes;
@@ -59,8 +67,14 @@ namespace sgif.infrastructure.repositories
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
             
-            var command = new MySqlCommand("INSERT INTO Cliente (nombre) VALUES (@nombre)", connection);
+            var command = new MySqlCommand(
+                "INSERT INTO clientes (nombre, direccion, ciudad, telefono, correo) VALUES (@nombre, @direccion, @ciudad, @telefono, @correo)", 
+                connection);
             command.Parameters.AddWithValue("@nombre", cliente.Nombre);
+            command.Parameters.AddWithValue("@direccion", cliente.Direccion);
+            command.Parameters.AddWithValue("@ciudad", cliente.Ciudad);
+            command.Parameters.AddWithValue("@telefono", cliente.Telefono);
+            command.Parameters.AddWithValue("@correo", cliente.Correo);
             await command.ExecuteNonQueryAsync();
         }
 
@@ -69,9 +83,15 @@ namespace sgif.infrastructure.repositories
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
             
-            var command = new MySqlCommand("UPDATE Cliente SET nombre = @nombre WHERE id = @id", connection);
-            command.Parameters.AddWithValue("@nombre", cliente.Nombre);
+            var command = new MySqlCommand(
+                "UPDATE clientes SET nombre = @nombre, direccion = @direccion, ciudad = @ciudad, telefono = @telefono, correo = @correo WHERE id = @id", 
+                connection);
             command.Parameters.AddWithValue("@id", cliente.Id);
+            command.Parameters.AddWithValue("@nombre", cliente.Nombre);
+            command.Parameters.AddWithValue("@direccion", cliente.Direccion);
+            command.Parameters.AddWithValue("@ciudad", cliente.Ciudad);
+            command.Parameters.AddWithValue("@telefono", cliente.Telefono);
+            command.Parameters.AddWithValue("@correo", cliente.Correo);
             await command.ExecuteNonQueryAsync();
         }
 
@@ -80,7 +100,7 @@ namespace sgif.infrastructure.repositories
             using var connection = new MySqlConnection(_connectionString);
             await connection.OpenAsync();
             
-            var command = new MySqlCommand("DELETE FROM Cliente WHERE id = @id", connection);
+            var command = new MySqlCommand("DELETE FROM clientes WHERE id = @id", connection);
             command.Parameters.AddWithValue("@id", id);
             await command.ExecuteNonQueryAsync();
         }
