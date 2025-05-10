@@ -11,9 +11,9 @@ namespace sgif.application.UI.Clientes
     {
         private readonly ClienteService _servicio;
 
-        public UICliente(IDbFactory factory)
+        public UICliente(IDbFactory factory, string connectionString)
         {
-            _servicio = new ClienteService(factory.CrearClienteRepository());
+            _servicio = new ClienteService(factory.CrearClienteRepository(), connectionString);
         }
 
         public async Task MostrarMenu()
@@ -54,6 +54,8 @@ namespace sgif.application.UI.Clientes
 
         private async Task CrearCliente()
         {
+            Console.Clear();
+            Console.WriteLine("--- CREAR NUEVO CLIENTE ---");
             Console.Write("Nombre: ");
             string nombre = Console.ReadLine()!;
             await _servicio.CrearCliente(nombre);
@@ -61,6 +63,8 @@ namespace sgif.application.UI.Clientes
 
         private async Task ActualizarCliente()
         {
+            Console.Clear();
+            Console.WriteLine("--- ACTUALIZAR CLIENTE ---");
             Console.Write("ID del cliente a actualizar: ");
             if (int.TryParse(Console.ReadLine(), out int id))
             {
@@ -76,6 +80,8 @@ namespace sgif.application.UI.Clientes
 
         private async Task EliminarCliente()
         {
+            Console.Clear();
+            Console.WriteLine("--- ELIMINAR CLIENTE ---");
             Console.Write("ID del cliente a eliminar: ");
             if (int.TryParse(Console.ReadLine(), out int id))
             {
