@@ -12,5 +12,6 @@ namespace sgif.domain.factory
         IProductoRepository CrearProductoRepository();
         IEmpleadoRepository CrearEmpleadoRepository();
         IProveedorRepository CrearProveedorRepository();
+        ITerceroRepository CrearTerceroRepository(); // Nuevo método agregado
     }
 }

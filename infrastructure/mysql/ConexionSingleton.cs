@@ -29,4 +29,6 @@ public class ConexionSingleton
 
         return _conexion;
     }
+
+    public string ConnectionString => _connectionString;
 }

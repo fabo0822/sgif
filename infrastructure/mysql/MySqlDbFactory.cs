@@ -32,5 +32,10 @@ namespace sgif.infrastructure.mysql
         {
             return new ProveedorRepository(_connectionString);
         }
+
+        public ITerceroRepository CrearTerceroRepository()
+        {
+            return new TerceroRepository(ConexionSingleton.Instancia("your_connection_string_here").ConnectionString);
+        }
     }
-} 
+}
