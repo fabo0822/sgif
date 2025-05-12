@@ -2,12 +2,12 @@ namespace sgif.domain.entities
 {
     public class Tercero
     {
-        public string Id { get; set; }
-        public string Nombre { get; set; }
-        public string Tipo { get; set; } // Cliente, Empleado, Proveedor
-        public string Documento { get; set; }
-        public string Direccion { get; set; }
-        public string Telefono { get; set; }
-        public string Email { get; set; }
+        public string Id { get; set; } = string.Empty;
+        public string Nombre { get; set; } = string.Empty;
+        public string Apellidos { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public int TipoDocumentoId { get; set; }
+        public int TipoTerceroId { get; set; }
+        public int CiudadId { get; set; }
     }
 } 

@@ -8,26 +8,50 @@ namespace sgif.application.services
     {
         private readonly IEmpleadoRepository _repository;
         private readonly string _connectionString;
+        private readonly ITerceroRepository _terceroRepository;
 
-        public EmpleadoService(IEmpleadoRepository repository, string connectionString)
+        public EmpleadoService(IEmpleadoRepository repository, string connectionString, ITerceroRepository terceroRepository)
         {
             _repository = repository;
             _connectionString = connectionString;
+            _terceroRepository = terceroRepository;
         }
 
         public async Task MostrarTodos()
         {
-            Console.Clear();
-            var empleados = await _repository.GetAllAsync();
-            Console.WriteLine("\n=== LISTA DE EMPLEADOS ===");
-            foreach (var empleado in empleados)
+            try
             {
-                Console.WriteLine($"ID: {empleado.Id}");
-                Console.WriteLine($"Nombre: {empleado.Nombre} {empleado.Apellidos}");
-                Console.WriteLine($"Email: {empleado.Email}");
-                Console.WriteLine($"Salario Base: ${empleado.SalarioBase:N2}");
-                Console.WriteLine($"Fecha Ingreso: {empleado.FechaIngreso:dd/MM/yyyy}");
-                Console.WriteLine("------------------------");
+                Console.Clear();
+                var empleados = await _repository.GetAllAsync();
+                if (empleados == null || !empleados.Any())
+                {
+                    Console.WriteLine("\nNo hay empleados registrados.");
+                    return;
+                }
+
+                Console.WriteLine("\n=== LISTA DE EMPLEADOS ===");
+                foreach (var empleado in empleados)
+                {
+                    var tercero = await _terceroRepository.GetById(empleado.TerceroId);
+                    if (tercero == null)
+                    {
+                        Console.WriteLine($"Empleado ID: {empleado.Id} - Tercero no encontrado");
+                        continue;
+                    }
+
+                    Console.WriteLine($"ID: {empleado.Id}");
+                    Console.WriteLine($"Nombre: {tercero.Nombre?? "N/A"} {tercero.Apellidos?? "N/A"}");
+                    Console.WriteLine($"Email: {tercero.Email?? "N/A"}");
+                    Console.WriteLine($"Fecha de Ingreso: {empleado.FechaIngreso:dd/MM/yyyy}");
+                    Console.WriteLine($"Salario Base: {empleado.SalarioBase:C}");
+                    Console.WriteLine($"EPS ID: {empleado.EpsId}");
+                    Console.WriteLine($"ARL ID: {empleado.ArlId}");
+                    Console.WriteLine("------------------------");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\nError al listar empleados: {ex.Message}");
             }
         }
 
