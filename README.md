@@ -18,9 +18,9 @@
 CREATE DATABASE dbsgi;
 ```
 
-3. Copia y pega el contenido del archivo `database/database.sql` y `database/procedures.sql`en tu MySQL para crear las tablas
+3. Copia y pega el contenido del archivo `database/database.sql`  tu MySQL para crear las tablas
 
-4. Copia y pega el contenido del archivo `database/insert_data.sql` para insertar los datos iniciales
+4. Copia y pega el contenido del archivo `database/insert_data.sql` y `database/procedures.sql`en  para insertar los datos iniciales
 
 5. En el archivo `appsettings.json`, busca esta línea:
 ```csharp
@@ -35,10 +35,12 @@ Y cambia:
 ## 🎮 Cómo funciona
 
 El programa tiene un menú principal donde puedes elegir qué quieres hacer:
-1. Gestión de Empleados
-2. Gestión de Proveedores
-3. Gestión de Productos
-4. Gestión de Clientes
+1. Gestión de Productos
+2. Gestión de Ventas
+3. Gestión de Compras
+4. movimientos de caja
+5. Gestion de planes promocionale
+6. gestión de personas 
 
 Cada sección tiene sus propias opciones para:
 - Ver todos los registros
