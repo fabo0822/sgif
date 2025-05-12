@@ -13,7 +13,8 @@ namespace sgif.application.UI.Clientes
 
         public UICliente(IDbFactory factory, string connectionString)
         {
-            _servicio = new ClienteService(factory.CrearClienteRepository(), connectionString);
+            var terceroRepository = factory.CrearTerceroRepository();
+            _servicio = new ClienteService(factory.CrearClienteRepository(), terceroRepository, connectionString);
         }
 
         public async Task MostrarMenu()
@@ -32,7 +33,7 @@ namespace sgif.application.UI.Clientes
                 switch (opcion)
                 {
                     case "1":
-                        await _servicio.MostrarTodos();
+                        await _servicio.ListarClientes();
                         break;
                     case "2":
                         await CrearCliente();
@@ -56,41 +57,21 @@ namespace sgif.application.UI.Clientes
         {
             Console.Clear();
             Console.WriteLine("--- CREAR NUEVO CLIENTE ---");
-            Console.Write("Nombre: ");
-            string nombre = Console.ReadLine()!;
-            await _servicio.CrearCliente(nombre);
+            await _servicio.RegistrarCliente();
         }
 
         private async Task ActualizarCliente()
         {
             Console.Clear();
             Console.WriteLine("--- ACTUALIZAR CLIENTE ---");
-            Console.Write("ID del cliente a actualizar: ");
-            if (int.TryParse(Console.ReadLine(), out int id))
-            {
-                Console.Write("Nuevo nombre: ");
-                string nuevoNombre = Console.ReadLine()!;
-                await _servicio.ActualizarCliente(id, nuevoNombre);
-            }
-            else
-            {
-                Console.WriteLine("❌ ID inválido.");
-            }
+            await _servicio.ActualizarCliente();
         }
 
         private async Task EliminarCliente()
         {
             Console.Clear();
             Console.WriteLine("--- ELIMINAR CLIENTE ---");
-            Console.Write("ID del cliente a eliminar: ");
-            if (int.TryParse(Console.ReadLine(), out int id))
-            {
-                await _servicio.EliminarCliente(id);
-            }
-            else
-            {
-                Console.WriteLine("❌ ID inválido.");
-            }
+            await _servicio.EliminarCliente();
         }
     }
 }

@@ -6,11 +6,11 @@ using sgif.domain.entities;
 
 namespace sgif.domain.ports;
 
-public interface IProductoRepository
+public interface IProductoRepository : IGenericRepository<Producto>
 {
-    Task<Producto?> GetByIdAsync(string id);
+    Task<Producto> GetById(string id);
     Task<IEnumerable<Producto>> GetAllAsync();
     Task AddAsync(Producto producto);
-    Task UpdateAsync(Producto producto);
+    new Task Update(Producto producto);
     Task DeleteAsync(string id);
 }

@@ -1,28 +1,3 @@
--- Limpiar datos existentes (en orden inverso a las dependencias)
-DELETE FROM MovCaja;
-DELETE FROM TipoMovCaja;
-DELETE FROM PlanProductos;
-DELETE FROM Planes;
-DELETE FROM Detalle_Venta;
-DELETE FROM Venta;
-DELETE FROM Cliente;
-DELETE FROM Facturacion;
-DELETE FROM Detalle_Compra;
-DELETE FROM Compras;
-DELETE FROM Producto_Proveedor;
-DELETE FROM Proveedor;
-DELETE FROM Productos;
-DELETE FROM Tercero_Telefonos;
-DELETE FROM Empleado;
-DELETE FROM Terceros;
-DELETE FROM TipoDocumento;
-DELETE FROM TipoTercero;
-DELETE FROM EPS;
-DELETE FROM ARL;
-DELETE FROM Ciudad;
-DELETE FROM Region;
-DELETE FROM Pais;
-
 -- Insertar países
 INSERT INTO Pais (id, nombre) VALUES 
 (1, 'Colombia'),
@@ -182,4 +157,75 @@ INSERT INTO ARL (id, nombre) VALUES
 (17, 'Alfa'),
 (18, 'Mundial'),
 (19, 'Seguros Generales'),
-(20, 'Seguros Atlas'); 
+(20, 'Seguros Atlas');
+
+-- Insertar terceros
+INSERT INTO Terceros (id, nombre, apellidos, email) VALUES 
+('T001', 'Juan', 'Pérez', 'juan.perez@example.com'),
+('T002', 'María', 'Gómez', 'maria.gomez@example.com'),
+('T003', 'Carlos', 'López', 'carlos.lopez@example.com');
+
+-- Insertar productos
+INSERT INTO Producto (id, nombre, stock, stockMin, stockMax, createdAt, updatedAt, barcode) VALUES 
+('P001', 'Producto A', 100, 10, 200, NOW(), NOW(), '1234567890123'),
+('P002', 'Producto B', 50, 5, 100, NOW(), NOW(), '1234567890456'),
+('P003', 'Producto C', 75, 15, 150, NOW(), NOW(), '1234567890789');
+
+-- Insertar proveedores
+INSERT INTO Proveedor (id, tercero_id, fecha_ingreso, descuento) VALUES 
+(1, 'T001', '2025-01-01', 10.5),
+(2, 'T002', '2025-02-01', 15.0);
+
+-- Insertar compras
+INSERT INTO Compras (id, tercero_prov_id, fecha, tercero_empl_id, doc_compra) VALUES 
+(1, 'T001', '2025-03-01', 'T003', 'DOC001'),
+(2, 'T002', '2025-03-15', 'T003', 'DOC002');
+
+-- Insertar detalles de compra
+INSERT INTO Detalle_Compra (id, fecha, producto_id, cantidad, valor, compra_id, entrada_salida) VALUES 
+(1, '2025-03-01', 'P001', 10, 100.00, 1, 'entrada'),
+(2, '2025-03-15', 'P002', 5, 50.00, 2, 'entrada');
+
+-- Insertar facturación
+INSERT INTO Facturacion (id, fecha_resolucion, num_inicio, num_final, fact_adicional) VALUES 
+(1, '2025-01-01', 1000, 2000, 'Adicional 1'),
+(2, '2025-02-01', 2001, 3000, 'Adicional 2');
+
+-- Insertar clientes
+INSERT INTO Cliente (id, tercero_id, fecha_nac, fecha_compra) VALUES 
+(1, 'T001', '1990-01-01', '2025-03-01'),
+(2, 'T002', '1985-05-15', '2025-03-15');
+
+-- Insertar ventas
+INSERT INTO Venta (id, fecha, tercero_empl_id, cliente_id, fact_id) VALUES 
+(1, '2025-03-10', 'T003', 1, 1),
+(2, '2025-03-20', 'T003', 2, 2);
+
+-- Insertar detalles de venta
+INSERT INTO Detalle_Venta (id, producto_id, cantidad, valor, venta_id) VALUES 
+(1, 'P001', 2, 20.00, 1),
+(2, 'P002', 1, 10.00, 2);
+
+-- Insertar planes
+INSERT INTO Planes (id, nombre, inicio, fin, descuento) VALUES 
+(1, 'Plan A', '2025-01-01', '2025-12-31', 10.0),
+(2, 'Plan B', '2025-06-01', '2025-12-31', 15.0);
+
+-- Insertar productos en planes
+INSERT INTO PlanProductos (id, plan_id, producto_id) VALUES 
+(1, 1, 'P001'),
+(2, 2, 'P002');
+
+-- Insertar tipos de movimiento de caja
+INSERT INTO TipoMovCaja (id, nombre, tipo) VALUES 
+(1, 'Ingreso', 'entrada'),
+(2, 'Egreso', 'salida');
+
+-- Insertar movimientos de caja
+INSERT INTO MovCaja (id, fecha, tipo_mov_id, valor, concepto, tercero_id) VALUES 
+(1, '2025-03-01', 1, 1000.00, 'Venta de productos', 'T001'),
+(2, '2025-03-15', 2, 500.00, 'Compra de insumos', 'T002');
+
+-- Insertar empleados
+INSERT INTO Empleado (id, tercero_id, fecha_ingreso, salario_base) VALUES 
+(1, 'T003', '2025-01-01', 2000.00);

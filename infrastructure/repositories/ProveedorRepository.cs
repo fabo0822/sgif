@@ -267,7 +267,7 @@ namespace sgif.infrastructure.repositories
 
             var cmd = new MySqlCommand(
                 @"SELECT p.* 
-                FROM Productos p 
+                FROM Producto p 
                 JOIN Producto_Proveedor pp ON p.id = pp.producto_id 
                 WHERE pp.tercero_id = @tercero_id", conn);
             cmd.Parameters.AddWithValue("@tercero_id", terceroId);
@@ -287,4 +287,4 @@ namespace sgif.infrastructure.repositories
             return productos;
         }
     }
-} 
+}

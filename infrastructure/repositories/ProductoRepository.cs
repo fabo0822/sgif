@@ -1,6 +1,10 @@
 using MySql.Data.MySqlClient;
 using sgif.domain.entities;
 using sgif.domain.ports;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace sgif.infrastructure.repositories
 {
@@ -13,55 +17,74 @@ namespace sgif.infrastructure.repositories
             _connectionString = connectionString;
         }
 
-        public async Task<Producto?> GetByIdAsync(string id)
+        public async Task<List<Producto>> GetAll()
         {
-            using var conn = new MySqlConnection(_connectionString);
-            await conn.OpenAsync();
+            var productos = await GetAllAsync();
+            return productos.ToList();
+        }
 
-            var cmd = new MySqlCommand(
-                "SELECT * FROM Productos WHERE id = @id", conn);
-            cmd.Parameters.AddWithValue("@id", id);
+        public async Task<Producto> GetById(int id)
+        {
+            return await GetById(id.ToString());
+        }
 
-            using var reader = await cmd.ExecuteReaderAsync();
+        public async Task Add(Producto producto)
+        {
+            await AddAsync(producto);
+        }
+
+        public async Task Delete(int id)
+        {
+            await DeleteAsync(id.ToString());
+        }
+
+        public async Task<Producto> GetById(string id)
+        {
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+            
+            var command = new MySqlCommand("SELECT * FROM Producto WHERE id = @id", connection);
+            command.Parameters.AddWithValue("@id", id);
+            
+            using var reader = await command.ExecuteReaderAsync();
             if (await reader.ReadAsync())
             {
                 return new Producto
                 {
-                    Id = reader.GetString(reader.GetOrdinal("id")),
-                    Nombre = reader.GetString(reader.GetOrdinal("nombre")),
-                    Stock = reader.GetInt32(reader.GetOrdinal("stock")),
-                    StockMin = reader.GetInt32(reader.GetOrdinal("stockMin")),
-                    StockMax = reader.GetInt32(reader.GetOrdinal("stockMax")),
-                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("createdAt")),
-                    UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updatedAt")),
-                    Barcode = reader.GetString(reader.GetOrdinal("barcode"))
+                    Id = reader["id"]?.ToString() ?? string.Empty,
+                    Nombre = reader["nombre"]?.ToString() ?? string.Empty,
+                    Stock = Convert.ToInt32(reader["stock"]),
+                    StockMin = Convert.ToInt32(reader["stockMin"]),
+                    StockMax = Convert.ToInt32(reader["stockMax"]),
+                    CreatedAt = Convert.ToDateTime(reader["createdAt"]),
+                    UpdatedAt = Convert.ToDateTime(reader["updatedAt"]),
+                    Barcode = reader["barcode"]?.ToString() ?? string.Empty
                 };
             }
-            return null;
+            return new Producto();
         }
 
         public async Task<IEnumerable<Producto>> GetAllAsync()
         {
             var productos = new List<Producto>();
-            using var conn = new MySqlConnection(_connectionString);
-            await conn.OpenAsync();
-
-            var cmd = new MySqlCommand(
-                "SELECT * FROM Productos", conn);
-
-            using var reader = await cmd.ExecuteReaderAsync();
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+            
+            var command = new MySqlCommand("SELECT * FROM Producto", connection);
+            using var reader = await command.ExecuteReaderAsync();
+            
             while (await reader.ReadAsync())
             {
                 productos.Add(new Producto
                 {
-                    Id = reader.GetString(reader.GetOrdinal("id")),
-                    Nombre = reader.GetString(reader.GetOrdinal("nombre")),
-                    Stock = reader.GetInt32(reader.GetOrdinal("stock")),
-                    StockMin = reader.GetInt32(reader.GetOrdinal("stockMin")),
-                    StockMax = reader.GetInt32(reader.GetOrdinal("stockMax")),
-                    CreatedAt = reader.GetDateTime(reader.GetOrdinal("createdAt")),
-                    UpdatedAt = reader.GetDateTime(reader.GetOrdinal("updatedAt")),
-                    Barcode = reader.GetString(reader.GetOrdinal("barcode"))
+                    Id = reader["id"]?.ToString() ?? string.Empty,
+                    Nombre = reader["nombre"]?.ToString() ?? string.Empty,
+                    Stock = Convert.ToInt32(reader["stock"]),
+                    StockMin = Convert.ToInt32(reader["stockMin"]),
+                    StockMax = Convert.ToInt32(reader["stockMax"]),
+                    CreatedAt = Convert.ToDateTime(reader["createdAt"]),
+                    UpdatedAt = Convert.ToDateTime(reader["updatedAt"]),
+                    Barcode = reader["barcode"]?.ToString() ?? string.Empty
                 });
             }
             return productos;
@@ -69,57 +92,60 @@ namespace sgif.infrastructure.repositories
 
         public async Task AddAsync(Producto producto)
         {
-            using var conn = new MySqlConnection(_connectionString);
-            await conn.OpenAsync();
-
-            var cmd = new MySqlCommand(
-                @"INSERT INTO Productos (id, nombre, stock, stockMin, stockMax, createdAt, updatedAt, barcode) 
-                VALUES (@id, @nombre, @stock, @stockMin, @stockMax, @createdAt, @updatedAt, @barcode)", conn);
-
-            cmd.Parameters.AddWithValue("@id", producto.Id);
-            cmd.Parameters.AddWithValue("@nombre", producto.Nombre);
-            cmd.Parameters.AddWithValue("@stock", producto.Stock);
-            cmd.Parameters.AddWithValue("@stockMin", producto.StockMin);
-            cmd.Parameters.AddWithValue("@stockMax", producto.StockMax);
-            cmd.Parameters.AddWithValue("@createdAt", producto.CreatedAt);
-            cmd.Parameters.AddWithValue("@updatedAt", producto.UpdatedAt);
-            cmd.Parameters.AddWithValue("@barcode", producto.Barcode);
-
-            await cmd.ExecuteNonQueryAsync();
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+            
+            var command = new MySqlCommand(@"
+                INSERT INTO Producto (id, nombre, stock, stockMin, stockMax, createdAt, updatedAt, barcode)
+                VALUES (@id, @nombre, @stock, @stockMin, @stockMax, @createdAt, @updatedAt, @barcode)", connection);
+            
+            command.Parameters.AddWithValue("@id", producto.Id);
+            command.Parameters.AddWithValue("@nombre", producto.Nombre);
+            command.Parameters.AddWithValue("@stock", producto.Stock);
+            command.Parameters.AddWithValue("@stockMin", producto.StockMin);
+            command.Parameters.AddWithValue("@stockMax", producto.StockMax);
+            command.Parameters.AddWithValue("@createdAt", DateTime.Now);
+            command.Parameters.AddWithValue("@updatedAt", DateTime.Now);
+            command.Parameters.AddWithValue("@barcode", producto.Barcode);
+            
+            await command.ExecuteNonQueryAsync();
         }
 
-        public async Task UpdateAsync(Producto producto)
+        public async Task Update(Producto producto)
         {
-            using var conn = new MySqlConnection(_connectionString);
-            await conn.OpenAsync();
-
-            var cmd = new MySqlCommand(
-                @"UPDATE Productos 
-                SET nombre = @nombre, stock = @stock, stockMin = @stockMin, stockMax = @stockMax, 
-                    updatedAt = @updatedAt, barcode = @barcode 
-                WHERE id = @id", conn);
-
-            cmd.Parameters.AddWithValue("@id", producto.Id);
-            cmd.Parameters.AddWithValue("@nombre", producto.Nombre);
-            cmd.Parameters.AddWithValue("@stock", producto.Stock);
-            cmd.Parameters.AddWithValue("@stockMin", producto.StockMin);
-            cmd.Parameters.AddWithValue("@stockMax", producto.StockMax);
-            cmd.Parameters.AddWithValue("@updatedAt", producto.UpdatedAt);
-            cmd.Parameters.AddWithValue("@barcode", producto.Barcode);
-
-            await cmd.ExecuteNonQueryAsync();
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+            
+            var command = new MySqlCommand(@"
+                UPDATE Producto 
+                SET nombre = @nombre,
+                    stock = @stock,
+                    stockMin = @stockMin,
+                    stockMax = @stockMax,
+                    updatedAt = @updatedAt,
+                    barcode = @barcode
+                WHERE id = @id", connection);
+            
+            command.Parameters.AddWithValue("@id", producto.Id);
+            command.Parameters.AddWithValue("@nombre", producto.Nombre);
+            command.Parameters.AddWithValue("@stock", producto.Stock);
+            command.Parameters.AddWithValue("@stockMin", producto.StockMin);
+            command.Parameters.AddWithValue("@stockMax", producto.StockMax);
+            command.Parameters.AddWithValue("@updatedAt", DateTime.Now);
+            command.Parameters.AddWithValue("@barcode", producto.Barcode);
+            
+            await command.ExecuteNonQueryAsync();
         }
 
         public async Task DeleteAsync(string id)
         {
-            using var conn = new MySqlConnection(_connectionString);
-            await conn.OpenAsync();
-
-            var cmd = new MySqlCommand(
-                "DELETE FROM Productos WHERE id = @id", conn);
-            cmd.Parameters.AddWithValue("@id", id);
-
-            await cmd.ExecuteNonQueryAsync();
+            using var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync();
+            
+            var command = new MySqlCommand("DELETE FROM Producto WHERE id = @id", connection);
+            command.Parameters.AddWithValue("@id", id);
+            
+            await command.ExecuteNonQueryAsync();
         }
     }
-} 
+}

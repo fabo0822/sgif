@@ -1,4 +1,3 @@
--- TABLAS DE SOPORTE GEOGRÁFICO
 create database dbsgi;
 
 use dbsgi;
@@ -57,7 +56,7 @@ CREATE TABLE Tercero_Telefonos (
 
 -- TABLAS DE PRODUCTOS Y PROVEEDORES
 
-CREATE TABLE Productos (
+CREATE TABLE Producto (
     id VARCHAR(20) PRIMARY KEY,
     nombre VARCHAR(50),
     stock INT,
@@ -80,7 +79,7 @@ CREATE TABLE Producto_Proveedor (
     id INT PRIMARY KEY AUTO_INCREMENT,
     producto_id VARCHAR(20),
     tercero_id VARCHAR(20),
-    FOREIGN KEY (producto_id) REFERENCES Productos(id),
+    FOREIGN KEY (producto_id) REFERENCES Producto(id),
     FOREIGN KEY (tercero_id) REFERENCES Terceros(id)
 );
 
@@ -104,7 +103,7 @@ CREATE TABLE Detalle_Compra (
     valor DECIMAL(10,2),
     compra_id INT,
     entrada_salida VARCHAR(10),
-    FOREIGN KEY (producto_id) REFERENCES Productos(id),
+    FOREIGN KEY (producto_id) REFERENCES Producto(id) ON DELETE CASCADE,
     FOREIGN KEY (compra_id) REFERENCES Compras(id)
 );
 
@@ -143,7 +142,7 @@ CREATE TABLE Detalle_Venta (
     cantidad INT,
     valor DECIMAL(10,2),
     venta_id INT,
-    FOREIGN KEY (producto_id) REFERENCES Productos(id),
+    FOREIGN KEY (producto_id) REFERENCES Producto(id),
     FOREIGN KEY (venta_id) REFERENCES Venta(id)
 );
 
@@ -162,7 +161,7 @@ CREATE TABLE PlanProductos (
     plan_id INT,
     producto_id VARCHAR(20),
     FOREIGN KEY (plan_id) REFERENCES Planes(id),
-    FOREIGN KEY (producto_id) REFERENCES Productos(id)
+    FOREIGN KEY (producto_id) REFERENCES Producto(id)
 );
 
 CREATE TABLE TipoMovCaja (
@@ -214,4 +213,4 @@ CREATE TABLE Empresa (
     ciudad_id INT,
     fecha_reg DATE,
     FOREIGN KEY (ciudad_id) REFERENCES Ciudad(id)
-); 
+);

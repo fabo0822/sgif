@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 
 namespace sgif.domain.ports
 {
-    public interface IGenericRepository<T>
+    public interface IGenericRepository<T> where T : class
     {
-        List<T> ObtenerTodos();
-        T? ObtenerPorId(int id);
-        void Crear(T entity);
-        void Actualizar(T entity);
-        void Eliminar(int id);
+        Task<List<T>> GetAll();
+        Task<T> GetById(int id);
+        Task Add(T entity);
+        Task Update(T entity);
+        Task Delete(int id);
     }
 }

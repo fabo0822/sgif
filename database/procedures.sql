@@ -181,34 +181,31 @@ DELIMITER $$
 
 CREATE PROCEDURE RegistrarVenta (
     IN p_fecha DATE,
-    IN p_cliente VARCHAR(20),
+    IN p_cliente INT,
     IN p_empleado VARCHAR(20),
-    IN p_forma_pago VARCHAR(50),
+    IN p_forma_pago VARCHAR(20),
     IN p_detalles JSON
 )
 BEGIN
     DECLARE v_venta_id INT;
 
-    INSERT INTO Venta (fecha, tercero_cli_id, tercero_emp_id, forma_pago)
-    VALUES (p_fecha, p_cliente, p_empleado, p_forma_pago);
+    -- Insertar la venta
+    INSERT INTO Venta (fecha, tercero_empl_id, cliente_id, fact_id)
+    VALUES (p_fecha, p_empleado, p_cliente, NULL);
 
     SET v_venta_id = LAST_INSERT_ID();
 
-    INSERT INTO Detalle_Venta (factura_id, producto_id, cantidad, valor)
-    SELECT 
-        v_venta_id,
-        detalle.producto_id,
-        detalle.cantidad,
-        detalle.valor
-    FROM JSON_TABLE(
-        p_detalles,
-        '$[*]' COLUMNS (
-            producto_id VARCHAR(20) PATH '$.productoId',
-            cantidad INT PATH '$.cantidad',
-            valor DOUBLE PATH '$.valor'
-        )
-    ) AS detalle;
-END$$
+    -- Insertar los detalles de la venta
+    INSERT INTO Detalle_Venta (venta_id, producto_id, cantidad, valor)
+    SELECT v_venta_id, JSON_UNQUOTE(JSON_EXTRACT(d.value, '$.productoId')),
+           JSON_UNQUOTE(JSON_EXTRACT(d.value, '$.cantidad')),
+           JSON_UNQUOTE(JSON_EXTRACT(d.value, '$.precioUnitario'))
+    FROM JSON_TABLE(p_detalles, '$[*]' COLUMNS (
+        productoId VARCHAR(20) PATH '$.productoId',
+        cantidad INT PATH '$.cantidad',
+        precioUnitario DECIMAL(10,2) PATH '$.precioUnitario'
+    )) AS d;
+END $$
 
 DELIMITER ;
 
@@ -239,4 +236,4 @@ BEGIN
     );
 END //
 
-DELIMITER ; 
+DELIMITER ;
