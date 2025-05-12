@@ -34,7 +34,7 @@ internal class Program
             IDbFactory factory = new MySqlDbFactory(connStr);
             var uiCliente = new UICliente(factory, connStr);
             var servicioProducto = new ProductoService(connStr, factory.CrearProductoRepository());
-            var servicioEmpleado = new EmpleadoService(factory.CrearEmpleadoRepository(), connStr);
+            var servicioEmpleado = new EmpleadoService(factory.CrearEmpleadoRepository(), connStr, factory.CrearTerceroRepository());
             var proveedorRepository = new ProveedorRepository(connStr);
             var terceroRepository = new TerceroRepository(connStr);
             var servicioProveedor = new ProveedorService(proveedorRepository, terceroRepository, connStr);

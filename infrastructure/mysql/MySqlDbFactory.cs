@@ -35,7 +35,7 @@ namespace sgif.infrastructure.mysql
 
         public ITerceroRepository CrearTerceroRepository()
         {
-            return new TerceroRepository(ConexionSingleton.Instancia("your_connection_string_here").ConnectionString);
+            return new TerceroRepository(_connectionString);
         }
     }
 }

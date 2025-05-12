@@ -4,6 +4,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace sgif.application.services
 {
@@ -82,12 +83,36 @@ namespace sgif.application.services
 
         public async Task ListarClientes()
         {
-            var clientes = await _clienteRepository.GetAllAsync();
-            foreach (var cliente in clientes)
+            try
             {
-                Console.WriteLine($"ID: {cliente.Id}");
-                Console.WriteLine($"Tercero ID: {cliente.TerceroId}");
-                Console.WriteLine("------------------------");
+                var clientes = await _clienteRepository.GetAllAsync();
+                if (clientes == null || !clientes.Any())
+                {
+                    Console.WriteLine("\nNo hay clientes registrados.");
+                    return;
+                }
+
+                Console.WriteLine("\n=== LISTA DE CLIENTES ===");
+                foreach (var cliente in clientes)
+                {
+                    var tercero = await _terceroRepository.GetById(cliente.TerceroId);
+                    if (tercero == null)
+                    {
+                        Console.WriteLine($"Cliente ID: {cliente.Id} - Tercero no encontrado");
+                        continue;
+                    }
+
+                    Console.WriteLine($"ID: {cliente.Id}");
+                    Console.WriteLine($"Nombre: {tercero.Nombre?? "N/A"} {tercero.Apellidos?? "N/A"}");
+                    Console.WriteLine($"Email: {tercero.Email?? "N/A"}");
+                    Console.WriteLine($"Fecha de Nacimiento: {cliente.FechaNacimiento:dd/MM/yyyy}");
+                    Console.WriteLine($"Fecha de Última Compra: {cliente.FechaCompra:dd/MM/yyyy}");
+                    Console.WriteLine("------------------------");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\nError al listar clientes: {ex.Message}");
             }
         }
 

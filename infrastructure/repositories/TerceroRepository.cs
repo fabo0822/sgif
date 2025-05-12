@@ -28,13 +28,13 @@ namespace sgif.infrastructure.repositories
             {
                 terceros.Add(new Tercero
                 {
-                    Id = reader.GetString(reader.GetOrdinal("id")),
-                    Nombre = reader.GetString(reader.GetOrdinal("nombre")),
-                    // Tipo = reader.GetString(reader.GetOrdinal("tipo")),
-                    // Documento = reader.GetString(reader.GetOrdinal("documento")),
-                    Direccion = reader.GetString(reader.GetOrdinal("direccion")),
-                    Telefono = reader.GetString(reader.GetOrdinal("telefono")),
-                    Email = reader.GetString(reader.GetOrdinal("email"))
+                    Id = reader.IsDBNull(reader.GetOrdinal("id")) ? string.Empty : reader.GetString(reader.GetOrdinal("id")),
+                    Nombre = reader.IsDBNull(reader.GetOrdinal("nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("nombre")),
+                    Apellidos = reader.IsDBNull(reader.GetOrdinal("apellidos")) ? string.Empty : reader.GetString(reader.GetOrdinal("apellidos")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString(reader.GetOrdinal("email")),
+                    TipoDocumentoId = reader.IsDBNull(reader.GetOrdinal("tipo_doc_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_doc_id")),
+                    TipoTerceroId = reader.IsDBNull(reader.GetOrdinal("tipo_tercero_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_tercero_id")),
+                    CiudadId = reader.IsDBNull(reader.GetOrdinal("ciudad_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ciudad_id"))
                 });
             }
 
@@ -54,17 +54,17 @@ namespace sgif.infrastructure.repositories
             {
                 return new Tercero
                 {
-                    Id = reader.GetString(reader.GetOrdinal("id")),
-                    Nombre = reader.GetString(reader.GetOrdinal("nombre")),
-                    // Tipo = reader.GetString(reader.GetOrdinal("tipo")),
-                    // Documento = reader.GetString(reader.GetOrdinal("documento")),
-                    Direccion = reader.GetString(reader.GetOrdinal("direccion")),
-                    Telefono = reader.GetString(reader.GetOrdinal("telefono")),
-                    Email = reader.GetString(reader.GetOrdinal("email"))
+                    Id = reader.IsDBNull(reader.GetOrdinal("id")) ? string.Empty : reader.GetString(reader.GetOrdinal("id")),
+                    Nombre = reader.IsDBNull(reader.GetOrdinal("nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("nombre")),
+                    Apellidos = reader.IsDBNull(reader.GetOrdinal("apellidos")) ? string.Empty : reader.GetString(reader.GetOrdinal("apellidos")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString(reader.GetOrdinal("email")),
+                    TipoDocumentoId = reader.IsDBNull(reader.GetOrdinal("tipo_doc_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_doc_id")),
+                    TipoTerceroId = reader.IsDBNull(reader.GetOrdinal("tipo_tercero_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_tercero_id")),
+                    CiudadId = reader.IsDBNull(reader.GetOrdinal("ciudad_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ciudad_id"))
                 };
             }
 
-            return new Tercero(); // Reemplazar el retorno nulo con una instancia vacía de Tercero
+            return null;
         }
 
         public async Task Add(Tercero tercero)
@@ -73,17 +73,17 @@ namespace sgif.infrastructure.repositories
             await conn.OpenAsync();
 
             using var cmd = new MySqlCommand(
-                "INSERT INTO Terceros (id, nombre, tipo, direccion, telefono, email) " +
-                "VALUES (@id, @nombre, @tipo, @direccion, @telefono, @email)",
+                "INSERT INTO Terceros (id, nombre, apellidos, email, tipo_doc_id, tipo_tercero_id, ciudad_id) " +
+                "VALUES (@id, @nombre, @apellidos, @email, @tipo_doc_id, @tipo_tercero_id, @ciudad_id)",
                 conn);
 
             cmd.Parameters.AddWithValue("@id", tercero.Id);
             cmd.Parameters.AddWithValue("@nombre", tercero.Nombre);
-            // cmd.Parameters.AddWithValue("@tipo", tercero.Tipo);
-            // cmd.Parameters.AddWithValue("@documento", tercero.Documento);
-            cmd.Parameters.AddWithValue("@direccion", tercero.Direccion);
-            cmd.Parameters.AddWithValue("@telefono", tercero.Telefono);
+            cmd.Parameters.AddWithValue("@apellidos", tercero.Apellidos);
             cmd.Parameters.AddWithValue("@email", tercero.Email);
+            cmd.Parameters.AddWithValue("@tipo_doc_id", tercero.TipoDocumentoId);
+            cmd.Parameters.AddWithValue("@tipo_tercero_id", tercero.TipoTerceroId);
+            cmd.Parameters.AddWithValue("@ciudad_id", tercero.CiudadId);
 
             await cmd.ExecuteNonQueryAsync();
         }
@@ -94,17 +94,18 @@ namespace sgif.infrastructure.repositories
             await conn.OpenAsync();
 
             using var cmd = new MySqlCommand(
-                "UPDATE Terceros SET nombre = @nombre, tipo = @tipo, direccion = @direccion, " +
-                "telefono = @telefono, email = @email WHERE id = @id",
+                "UPDATE Terceros SET nombre = @nombre, apellidos = @apellidos, email = @email, " +
+                "tipo_doc_id = @tipo_doc_id, tipo_tercero_id = @tipo_tercero_id, ciudad_id = @ciudad_id " +
+                "WHERE id = @id",
                 conn);
 
             cmd.Parameters.AddWithValue("@id", tercero.Id);
             cmd.Parameters.AddWithValue("@nombre", tercero.Nombre);
-            // cmd.Parameters.AddWithValue("@tipo", tercero.Tipo);
-            // cmd.Parameters.AddWithValue("@documento", tercero.Documento);
-            cmd.Parameters.AddWithValue("@direccion", tercero.Direccion);
-            cmd.Parameters.AddWithValue("@telefono", tercero.Telefono);
+            cmd.Parameters.AddWithValue("@apellidos", tercero.Apellidos);
             cmd.Parameters.AddWithValue("@email", tercero.Email);
+            cmd.Parameters.AddWithValue("@tipo_doc_id", tercero.TipoDocumentoId);
+            cmd.Parameters.AddWithValue("@tipo_tercero_id", tercero.TipoTerceroId);
+            cmd.Parameters.AddWithValue("@ciudad_id", tercero.CiudadId);
 
             await cmd.ExecuteNonQueryAsync();
         }
@@ -134,22 +135,57 @@ namespace sgif.infrastructure.repositories
         public async Task<IEnumerable<Tercero>> GetAllAsync()
         {
             var terceros = new List<Tercero>();
-            using var connection = new MySqlConnection(_connectionString);
-            await connection.OpenAsync();
+            using var conn = new MySqlConnection(_connectionString);
+            await conn.OpenAsync();
 
-            var command = new MySqlCommand("SELECT * FROM Terceros", connection);
-            using var reader = await command.ExecuteReaderAsync();
+            var cmd = new MySqlCommand(
+                @"SELECT id, nombre, apellidos, email, tipo_doc_id, tipo_tercero_id, ciudad_id 
+                FROM Terceros", conn);
 
+            using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                terceros.Add(new Tercero
+                var tercero = new Tercero
                 {
-                    Id = reader["id"]?.ToString() ?? string.Empty,
-                    Nombre = reader["nombre"]?.ToString() ?? string.Empty
-                });
+                    Id = reader.IsDBNull(reader.GetOrdinal("id")) ? string.Empty : reader.GetString(reader.GetOrdinal("id")),
+                    Nombre = reader.IsDBNull(reader.GetOrdinal("nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("nombre")),
+                    Apellidos = reader.IsDBNull(reader.GetOrdinal("apellidos")) ? string.Empty : reader.GetString(reader.GetOrdinal("apellidos")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString(reader.GetOrdinal("email")),
+                    TipoDocumentoId = reader.IsDBNull(reader.GetOrdinal("tipo_doc_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_doc_id")),
+                    TipoTerceroId = reader.IsDBNull(reader.GetOrdinal("tipo_tercero_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_tercero_id")),
+                    CiudadId = reader.IsDBNull(reader.GetOrdinal("ciudad_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ciudad_id"))
+                };
+                terceros.Add(tercero);
             }
-
             return terceros;
+        }
+
+        public async Task<Tercero?> GetByIdAsync(int id)
+        {
+            using var conn = new MySqlConnection(_connectionString);
+            await conn.OpenAsync();
+
+            var cmd = new MySqlCommand(
+                @"SELECT id, nombre, apellidos, email, tipo_doc_id, tipo_tercero_id, ciudad_id 
+                FROM Terceros 
+                WHERE id = @id", conn);
+            cmd.Parameters.AddWithValue("@id", id);
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+            {
+                return new Tercero
+                {
+                    Id = reader.IsDBNull(reader.GetOrdinal("id")) ? string.Empty : reader.GetString(reader.GetOrdinal("id")),
+                    Nombre = reader.IsDBNull(reader.GetOrdinal("nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("nombre")),
+                    Apellidos = reader.IsDBNull(reader.GetOrdinal("apellidos")) ? string.Empty : reader.GetString(reader.GetOrdinal("apellidos")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString(reader.GetOrdinal("email")),
+                    TipoDocumentoId = reader.IsDBNull(reader.GetOrdinal("tipo_doc_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_doc_id")),
+                    TipoTerceroId = reader.IsDBNull(reader.GetOrdinal("tipo_tercero_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_tercero_id")),
+                    CiudadId = reader.IsDBNull(reader.GetOrdinal("ciudad_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ciudad_id"))
+                };
+            }
+            return null;
         }
     }
 }

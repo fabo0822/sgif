@@ -128,12 +128,36 @@ namespace sgif.application.services
 
         public async Task ListarProveedores()
         {
-            var proveedores = await _proveedorRepository.GetAllAsync();
-            foreach (var proveedor in proveedores)
+            try
             {
-                Console.WriteLine($"ID: {proveedor.Id}");
-                Console.WriteLine($"Tercero ID: {proveedor.TerceroId}");
-                Console.WriteLine("------------------------");
+                var proveedores = await _proveedorRepository.GetAllAsync();
+                if (proveedores == null || !proveedores.Any())
+                {
+                    Console.WriteLine("\nNo hay proveedores registrados.");
+                    return;
+                }
+
+                Console.WriteLine("\n=== LISTA DE PROVEEDORES ===");
+                foreach (var proveedor in proveedores)
+                {
+                    var tercero = await _terceroRepository.GetById(proveedor.TerceroId);
+                    if (tercero == null)
+                    {
+                        Console.WriteLine($"Proveedor ID: {proveedor.Id} - Tercero no encontrado");
+                        continue;
+                    }
+
+                    Console.WriteLine($"ID: {proveedor.Id}");
+                    Console.WriteLine($"Nombre: {tercero.Nombre?? "N/A"} {tercero.Apellidos?? "N/A"}");
+                    Console.WriteLine($"Email: {tercero.Email?? "N/A"}");
+                    Console.WriteLine($"Fecha de Ingreso: {proveedor.FechaIngreso:dd/MM/yyyy}");
+                    Console.WriteLine($"Descuento: {proveedor.Descuento:P}");
+                    Console.WriteLine("------------------------");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"\nError al listar proveedores: {ex.Message}");
             }
         }
 

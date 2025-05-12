@@ -21,7 +21,7 @@ namespace sgif.infrastructure.repositories
             var cmd = new MySqlCommand(
                 @"SELECT e.*, t.nombre, t.apellidos, t.email, t.tipo_doc_id, t.tipo_tercero_id, t.ciudad_id 
                 FROM Empleado e 
-                JOIN Terceros t ON e.tercero_id = t.id 
+                LEFT JOIN Terceros t ON e.tercero_id = t.id 
                 WHERE e.id = @id", conn);
             cmd.Parameters.AddWithValue("@id", id);
 
@@ -30,18 +30,18 @@ namespace sgif.infrastructure.repositories
             {
                 return new Empleado
                 {
-                    Id = reader.GetInt32(reader.GetOrdinal("id")),
-                    TerceroId = reader.GetString(reader.GetOrdinal("tercero_id")),
-                    FechaIngreso = reader.GetDateTime(reader.GetOrdinal("fecha_ingreso")),
-                    SalarioBase = reader.GetDecimal(reader.GetOrdinal("salario_base")),
-                    EpsId = reader.GetInt32(reader.GetOrdinal("eps_id")),
-                    ArlId = reader.GetInt32(reader.GetOrdinal("arl_id")),
-                    Nombre = reader.GetString(reader.GetOrdinal("nombre")),
-                    Apellidos = reader.GetString(reader.GetOrdinal("apellidos")),
-                    Email = reader.GetString(reader.GetOrdinal("email")),
-                    TipoDocumentoId = reader.GetInt32(reader.GetOrdinal("tipo_doc_id")),
-                    TipoTerceroId = reader.GetInt32(reader.GetOrdinal("tipo_tercero_id")),
-                    CiudadId = reader.GetInt32(reader.GetOrdinal("ciudad_id"))
+                    Id = reader.IsDBNull(reader.GetOrdinal("id")) ? 0 : reader.GetInt32(reader.GetOrdinal("id")),
+                    TerceroId = reader.IsDBNull(reader.GetOrdinal("tercero_id")) ? string.Empty : reader.GetString(reader.GetOrdinal("tercero_id")),
+                    FechaIngreso = reader.IsDBNull(reader.GetOrdinal("fecha_ingreso")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("fecha_ingreso")),
+                    SalarioBase = reader.IsDBNull(reader.GetOrdinal("salario_base")) ? 0 : reader.GetDecimal(reader.GetOrdinal("salario_base")),
+                    EpsId = reader.IsDBNull(reader.GetOrdinal("eps_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("eps_id")),
+                    ArlId = reader.IsDBNull(reader.GetOrdinal("arl_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("arl_id")),
+                    Nombre = reader.IsDBNull(reader.GetOrdinal("nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("nombre")),
+                    Apellidos = reader.IsDBNull(reader.GetOrdinal("apellidos")) ? string.Empty : reader.GetString(reader.GetOrdinal("apellidos")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString(reader.GetOrdinal("email")),
+                    TipoDocumentoId = reader.IsDBNull(reader.GetOrdinal("tipo_doc_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_doc_id")),
+                    TipoTerceroId = reader.IsDBNull(reader.GetOrdinal("tipo_tercero_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_tercero_id")),
+                    CiudadId = reader.IsDBNull(reader.GetOrdinal("ciudad_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ciudad_id"))
                 };
             }
             return null;
@@ -56,26 +56,27 @@ namespace sgif.infrastructure.repositories
             var cmd = new MySqlCommand(
                 @"SELECT e.*, t.nombre, t.apellidos, t.email, t.tipo_doc_id, t.tipo_tercero_id, t.ciudad_id 
                 FROM Empleado e 
-                JOIN Terceros t ON e.tercero_id = t.id", conn);
+                LEFT JOIN Terceros t ON e.tercero_id = t.id", conn);
 
             using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                empleados.Add(new Empleado
+                var empleado = new Empleado
                 {
                     Id = reader.GetInt32(reader.GetOrdinal("id")),
-                    TerceroId = reader.GetString(reader.GetOrdinal("tercero_id")),
-                    FechaIngreso = reader.GetDateTime(reader.GetOrdinal("fecha_ingreso")),
-                    SalarioBase = reader.GetDecimal(reader.GetOrdinal("salario_base")),
-                    EpsId = reader.GetInt32(reader.GetOrdinal("eps_id")),
-                    ArlId = reader.GetInt32(reader.GetOrdinal("arl_id")),
-                    Nombre = reader.GetString(reader.GetOrdinal("nombre")),
-                    Apellidos = reader.GetString(reader.GetOrdinal("apellidos")),
-                    Email = reader.GetString(reader.GetOrdinal("email")),
-                    TipoDocumentoId = reader.GetInt32(reader.GetOrdinal("tipo_doc_id")),
-                    TipoTerceroId = reader.GetInt32(reader.GetOrdinal("tipo_tercero_id")),
-                    CiudadId = reader.GetInt32(reader.GetOrdinal("ciudad_id"))
-                });
+                    TerceroId = reader.IsDBNull(reader.GetOrdinal("tercero_id")) ? string.Empty : reader.GetString(reader.GetOrdinal("tercero_id")),
+                    FechaIngreso = reader.IsDBNull(reader.GetOrdinal("fecha_ingreso")) ? DateTime.MinValue : reader.GetDateTime(reader.GetOrdinal("fecha_ingreso")),
+                    SalarioBase = reader.IsDBNull(reader.GetOrdinal("salario_base")) ? 0 : reader.GetDecimal(reader.GetOrdinal("salario_base")),
+                    EpsId = reader.IsDBNull(reader.GetOrdinal("eps_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("eps_id")),
+                    ArlId = reader.IsDBNull(reader.GetOrdinal("arl_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("arl_id")),
+                    Nombre = reader.IsDBNull(reader.GetOrdinal("nombre")) ? string.Empty : reader.GetString(reader.GetOrdinal("nombre")),
+                    Apellidos = reader.IsDBNull(reader.GetOrdinal("apellidos")) ? string.Empty : reader.GetString(reader.GetOrdinal("apellidos")),
+                    Email = reader.IsDBNull(reader.GetOrdinal("email")) ? string.Empty : reader.GetString(reader.GetOrdinal("email")),
+                    TipoDocumentoId = reader.IsDBNull(reader.GetOrdinal("tipo_doc_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_doc_id")),
+                    TipoTerceroId = reader.IsDBNull(reader.GetOrdinal("tipo_tercero_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("tipo_tercero_id")),
+                    CiudadId = reader.IsDBNull(reader.GetOrdinal("ciudad_id")) ? 0 : reader.GetInt32(reader.GetOrdinal("ciudad_id"))
+                };
+                empleados.Add(empleado);
             }
             return empleados;
         }
