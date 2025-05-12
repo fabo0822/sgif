@@ -1,27 +1,4 @@
--- Limpiar datos existentes (en orden inverso a las dependencias)
-DELETE FROM MovCaja;
-DELETE FROM TipoMovCaja;
-DELETE FROM PlanProductos;
-DELETE FROM Planes;
-DELETE FROM Detalle_Venta;
-DELETE FROM Venta;
-DELETE FROM Cliente;
-DELETE FROM Facturacion;
-DELETE FROM Detalle_Compra;
-DELETE FROM Compras;
-DELETE FROM Producto_Proveedor;
-DELETE FROM Proveedor;
-DELETE FROM Productos;
-DELETE FROM Tercero_Telefonos;
-DELETE FROM Empleado;
-DELETE FROM Terceros;
-DELETE FROM TipoDocumento;
-DELETE FROM TipoTercero;
-DELETE FROM EPS;
-DELETE FROM ARL;
-DELETE FROM Ciudad;
-DELETE FROM Region;
-DELETE FROM Pais;
+
 
 -- Insertar países
 INSERT INTO Pais (id, nombre) VALUES 

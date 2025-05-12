@@ -13,7 +13,7 @@ internal class Program
 {
     private static async Task Main(string[] args)
     {
-        string connStr = "server=localhost;database=dbsgi;user=root;password=1234;AllowPublicKeyRetrieval=true;SslMode=none;";
+        string connStr = "server=localhost;database=dbsgi;user=root;password=fabo8DEJUNIO@;AllowPublicKeyRetrieval=true;SslMode=none;";
         IDbFactory factory = new MySqlDbFactory(connStr);
         var uiCliente = new UICliente(factory, connStr);
         var servicioProducto = new ProductoService(connStr, factory.CrearProductoRepository());

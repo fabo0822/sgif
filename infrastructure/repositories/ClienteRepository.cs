@@ -84,43 +84,19 @@ namespace sgif.infrastructure.repositories
 
             try
             {
-                // Generamos un ID único para Terceros
-                if (string.IsNullOrEmpty(cliente.TerceroId))
-                {
-                    cliente.TerceroId = Guid.NewGuid().ToString("N").Substring(0, 20);
-                }
+                var command = new MySqlCommand("CALL insertar_tercero_y_cliente(@id, @nombre, @apellidos, @email, @tipo_doc_id, @tipo_tercero_id, @ciudad_id, @fecha_nac, @fecha_ultima_compra)", connection, transaction);
 
-                // Primero insertamos en Terceros
-                var terceroCommand = new MySqlCommand(@"
-                    INSERT INTO Terceros (id, nombre, apellidos, email, tipo_doc_id, tipo_tercero_id, ciudad_id) 
-                    VALUES (@id, @nombre, @apellidos, @email, @tipo_doc_id, @tipo_tercero_id, @ciudad_id)", 
-                    connection, transaction);
+                command.Parameters.AddWithValue("@id", cliente.TerceroId);
+                command.Parameters.AddWithValue("@nombre", cliente.Nombre);
+                command.Parameters.AddWithValue("@apellidos", cliente.Apellidos);
+                command.Parameters.AddWithValue("@email", cliente.Email);
+                command.Parameters.AddWithValue("@tipo_doc_id", cliente.TipoDocumentoId);
+                command.Parameters.AddWithValue("@tipo_tercero_id", cliente.TipoTerceroId);
+                command.Parameters.AddWithValue("@ciudad_id", cliente.CiudadId);
+                command.Parameters.AddWithValue("@fecha_nac", cliente.FechaNacimiento);
+                command.Parameters.AddWithValue("@fecha_ultima_compra", cliente.FechaCompra);
 
-                terceroCommand.Parameters.AddWithValue("@id", cliente.TerceroId);
-                terceroCommand.Parameters.AddWithValue("@nombre", cliente.Nombre);
-                terceroCommand.Parameters.AddWithValue("@apellidos", cliente.Apellidos);
-                terceroCommand.Parameters.AddWithValue("@email", cliente.Email);
-                terceroCommand.Parameters.AddWithValue("@tipo_doc_id", cliente.TipoDocumentoId);
-                terceroCommand.Parameters.AddWithValue("@tipo_tercero_id", cliente.TipoTerceroId);
-                terceroCommand.Parameters.AddWithValue("@ciudad_id", cliente.CiudadId);
-                await terceroCommand.ExecuteNonQueryAsync();
-
-                // Luego insertamos en Cliente
-                var clienteCommand = new MySqlCommand(@"
-                    INSERT INTO Cliente (id, tercero_id, fecha_nac, fecha_compra) 
-                    VALUES (@id, @tercero_id, @fecha_nac, @fecha_compra)", 
-                    connection, transaction);
-
-                // Generamos un ID para Cliente
-                var getNextIdCommand = new MySqlCommand("SELECT COALESCE(MAX(id), 0) + 1 FROM Cliente", connection, transaction);
-                cliente.Id = Convert.ToInt32(await getNextIdCommand.ExecuteScalarAsync());
-
-                clienteCommand.Parameters.AddWithValue("@id", cliente.Id);
-                clienteCommand.Parameters.AddWithValue("@tercero_id", cliente.TerceroId);
-                clienteCommand.Parameters.AddWithValue("@fecha_nac", cliente.FechaNacimiento);
-                clienteCommand.Parameters.AddWithValue("@fecha_compra", cliente.FechaCompra);
-                await clienteCommand.ExecuteNonQueryAsync();
-
+                await command.ExecuteNonQueryAsync();
                 await transaction.CommitAsync();
             }
             catch

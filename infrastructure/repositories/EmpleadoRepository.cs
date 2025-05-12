@@ -88,68 +88,22 @@ namespace sgif.infrastructure.repositories
 
             try
             {
-                // Verificar si existe el tipo de documento
-                var cmdCheckTipoDoc = new MySqlCommand(
-                    "SELECT COUNT(*) FROM TipoDocumento WHERE id = @tipo_doc_id", conn, transaction);
-                cmdCheckTipoDoc.Parameters.AddWithValue("@tipo_doc_id", empleado.TipoDocumentoId);
-                var tipoDocExists = Convert.ToInt32(await cmdCheckTipoDoc.ExecuteScalarAsync()) > 0;
+                var command = new MySqlCommand("CALL insertar_tercero_y_empleado(@id, @nombre, @apellidos, @email, @tipo_doc_id, @tipo_tercero_id, @ciudad_id, @fecha_ingreso, @salario_base, @eps_id, @arl_id)", conn, transaction);
 
-                if (!tipoDocExists)
-                {
-                    throw new Exception($"El tipo de documento con ID {empleado.TipoDocumentoId} no existe.");
-                }
-
-                // Verificar si existe el tipo de tercero para empleados (id = 2)
-                var cmdCheckTipo = new MySqlCommand(
-                    "SELECT COUNT(*) FROM TipoTercero WHERE id = 2", conn, transaction);
-                var tipoExists = Convert.ToInt32(await cmdCheckTipo.ExecuteScalarAsync()) > 0;
-
-                if (!tipoExists)
-                {
-                    // Insertar el tipo de tercero si no existe
-                    var cmdInsertTipo = new MySqlCommand(
-                        "INSERT INTO TipoTercero (id, descripcion) VALUES (2, 'Empleado')", conn, transaction);
-                    await cmdInsertTipo.ExecuteNonQueryAsync();
-                }
-
-                // Verificar si existe la ciudad
-                var cmdCheckCiudad = new MySqlCommand(
-                    "SELECT COUNT(*) FROM Ciudad WHERE id = @ciudad_id", conn, transaction);
-                cmdCheckCiudad.Parameters.AddWithValue("@ciudad_id", empleado.CiudadId);
-                var ciudadExists = Convert.ToInt32(await cmdCheckCiudad.ExecuteScalarAsync()) > 0;
-
-                if (!ciudadExists)
-                {
-                    throw new Exception($"La ciudad con ID {empleado.CiudadId} no existe.");
-                }
-
-                // Primero insertar en Terceros
-                var cmdTercero = new MySqlCommand(
-                    @"INSERT INTO Terceros (id, nombre, apellidos, email, tipo_doc_id, tipo_tercero_id, ciudad_id) 
-                    VALUES (@id, @nombre, @apellidos, @email, @tipo_doc_id, 2, @ciudad_id)", conn, transaction);
-                
                 var terceroId = Guid.NewGuid().ToString("N").Substring(0, 20);
-                cmdTercero.Parameters.AddWithValue("@id", terceroId);
-                cmdTercero.Parameters.AddWithValue("@nombre", empleado.Nombre);
-                cmdTercero.Parameters.AddWithValue("@apellidos", empleado.Apellidos);
-                cmdTercero.Parameters.AddWithValue("@email", empleado.Email);
-                cmdTercero.Parameters.AddWithValue("@tipo_doc_id", empleado.TipoDocumentoId);
-                cmdTercero.Parameters.AddWithValue("@ciudad_id", empleado.CiudadId);
+                command.Parameters.AddWithValue("@id", terceroId);
+                command.Parameters.AddWithValue("@nombre", empleado.Nombre);
+                command.Parameters.AddWithValue("@apellidos", empleado.Apellidos);
+                command.Parameters.AddWithValue("@email", empleado.Email);
+                command.Parameters.AddWithValue("@tipo_doc_id", empleado.TipoDocumentoId);
+                command.Parameters.AddWithValue("@tipo_tercero_id", 2); // Tipo de tercero para empleados
+                command.Parameters.AddWithValue("@ciudad_id", empleado.CiudadId);
+                command.Parameters.AddWithValue("@fecha_ingreso", empleado.FechaIngreso);
+                command.Parameters.AddWithValue("@salario_base", empleado.SalarioBase);
+                command.Parameters.AddWithValue("@eps_id", empleado.EpsId);
+                command.Parameters.AddWithValue("@arl_id", empleado.ArlId);
 
-                await cmdTercero.ExecuteNonQueryAsync();
-
-                // Luego insertar en Empleado
-                var cmdEmpleado = new MySqlCommand(
-                    @"INSERT INTO Empleado (tercero_id, fecha_ingreso, salario_base, eps_id, arl_id) 
-                    VALUES (@tercero_id, @fecha_ingreso, @salario_base, @eps_id, @arl_id)", conn, transaction);
-
-                cmdEmpleado.Parameters.AddWithValue("@tercero_id", terceroId);
-                cmdEmpleado.Parameters.AddWithValue("@fecha_ingreso", empleado.FechaIngreso);
-                cmdEmpleado.Parameters.AddWithValue("@salario_base", empleado.SalarioBase);
-                cmdEmpleado.Parameters.AddWithValue("@eps_id", empleado.EpsId);
-                cmdEmpleado.Parameters.AddWithValue("@arl_id", empleado.ArlId);
-
-                await cmdEmpleado.ExecuteNonQueryAsync();
+                await command.ExecuteNonQueryAsync();
                 await transaction.CommitAsync();
             }
             catch (Exception ex)
