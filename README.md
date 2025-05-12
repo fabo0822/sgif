@@ -1,6 +1,6 @@
 # 🏪 Sistema de Gestión Integral (SGI)
-
-Hola! Este es mi proyecto de Sistema de Gestión Integral que hice para la clase de Programación. Es un sistema que te permite manejar empleados, proveedores, productos y clientes. 
+ 
+ Sistema que te permite manejar empleados, proveedores, productos y clientes. 
 
 ## 📋 Lo que hace el sistema
 
@@ -18,11 +18,11 @@ Hola! Este es mi proyecto de Sistema de Gestión Integral que hice para la clase
 CREATE DATABASE dbsgi;
 ```
 
-3. Copia y pega el contenido del archivo `database/create_tables.sql` en tu MySQL para crear las tablas
+3. Copia y pega el contenido del archivo `database/database.sql` y `database/procedures.sql`en tu MySQL para crear las tablas
 
 4. Copia y pega el contenido del archivo `database/insert_data.sql` para insertar los datos iniciales
 
-5. En el archivo `Program.cs`, busca esta línea:
+5. En el archivo `appsettings.json`, busca esta línea:
 ```csharp
 string connStr = "server=localhost;database=dbsgi;user=root;password=1234;AllowPublicKeyRetrieval=true;SslMode=none;";
 ```
@@ -51,7 +51,7 @@ Cada sección tiene sus propias opciones para:
 
 - Asegúrate de que MySQL esté corriendo antes de ejecutar el programa
 - Si te da error de conexión, revisa que el usuario y contraseña sean correctos
-- Los datos iniciales son importantes, no te saltes el paso de insertar los datos del `insert_data.sql`
+- Los datos iniciales son importantes, no te saltes el paso de insertar los datos del `insert_data.sql` y `database/procedures.sql`
 
 ## 🛠️ Tecnologías que usé
 
